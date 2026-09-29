@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="build" content="kalady-study-opt4c">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kalady Residence — Private Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--t1:#F5F5F7;--t2:#86868B;--t3:#6E6E73;--sep:rgba(255,255,255,.1);--blue:#0071E3;--green:#30D158;--orange:#FF9F0A;--red:#FF453A;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter","Helvetica Neue",Helvetica,Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;overflow:hidden;color:var(--t1);font-family:var(--font);-webkit-font-smoothing:antialiased;background:#000}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(110% 80% at 62% 48%,#26262a 0%,#101012 55%,#000 100%)}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+#stage canvas:active{cursor:grabbing}
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;transform:translate(-50%,-100%);font-size:11.5px;font-weight:500;letter-spacing:-.01em;color:var(--t1);background:rgba(29,29,31,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.lbl.strong{background:rgba(245,245,247,.96);color:#1d1d1f;font-weight:600}
+.lbl.small{font-size:10.5px;padding:3px 8px}
+.lbl.alert{background:var(--red);color:#fff}
+.lbl.good{background:var(--green);color:#052b12}
+/* global nav — apple.com pattern */
+.gnav{position:fixed;top:0;left:0;right:0;height:44px;background:rgba(22,22,23,.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);z-index:10}
+.gin{max-width:1024px;height:100%;margin:0 auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.gin img{height:15px;width:auto;display:block;opacity:.92}
+.steps{display:flex;gap:4px}
+.steps button,.lnk{font:inherit;font-size:12px;letter-spacing:-.01em;color:rgba(232,232,237,.8);background:none;border:none;padding:6px 10px;cursor:pointer;border-radius:6px;transition:color .2s}
+.steps button:hover,.lnk:hover{color:#fff}
+.steps button.on{color:#fff;font-weight:600}
+/* local nav */
+.lnav{position:fixed;top:44px;left:0;right:0;height:52px;background:rgba(0,0,0,.55);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(255,255,255,.08);z-index:9}
+.lin{max-width:1024px;height:100%;margin:0 auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between}
+.ltitle{font-size:21px;font-weight:600;letter-spacing:.011em}
+.ltitle span{color:var(--t2);font-weight:400}
+.ltitle .dims{font-style:normal;font-size:12px;font-weight:500;color:var(--t2);margin-left:14px;padding:4px 10px;border-radius:980px;background:rgba(118,118,128,.24);vertical-align:3px}
+.opts{display:flex;align-items:center;gap:6px}
+.opts button{font:inherit;font-size:12px;letter-spacing:-.01em;color:rgba(245,245,247,.8);background:none;border:none;padding:5px 11px;border-radius:980px;cursor:pointer}
+.opts button:hover{color:#fff}
+.opts button.on{background:var(--blue);color:#fff}
+button:focus-visible{outline:2px solid #2997ff;outline-offset:2px}
+/* info card */
+#card{position:fixed;left:28px;top:120px;width:360px;max-height:calc(100% - 200px);overflow-y:auto;background:rgba(29,29,31,.72);backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);border-radius:22px;padding:28px 26px 22px}
+#card::-webkit-scrollbar{width:0}
+.eyebrow{font-size:14px;font-weight:600;letter-spacing:-.01em;background:linear-gradient(90deg,#f5d0a0,#e8a6ff 60%,#9ab8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+#card h1{font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.015em;margin:6px 0 12px}
+#card p.cap{font-size:15px;line-height:1.47;color:var(--t2);letter-spacing:-.01em}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:22px 16px;margin-top:24px}
+.tile .v{font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.05;display:flex;align-items:center;gap:8px}
+.tile .v small{font-size:15px;font-weight:600;color:var(--t2);letter-spacing:0}
+.tile .k{font-size:12.5px;color:var(--t2);margin-top:5px;line-height:1.35}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.d-ok{background:var(--green)}.d-warn{background:var(--orange)}.d-bad{background:var(--red)}
+.list{margin-top:22px;border-top:1px solid var(--sep)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;font-size:13.5px;border-bottom:1px solid var(--sep);letter-spacing:-.01em}
+.row span{color:var(--t2)}
+.row b{font-weight:500;text-align:right}
+.pill{display:flex;margin-top:20px;background:rgba(118,118,128,.24);border-radius:980px;padding:3px}
+.pill button{flex:1;font:inherit;font-size:13px;font-weight:500;color:var(--t1);background:none;border:none;border-radius:980px;padding:8px 10px;cursor:pointer}
+.pill button.on{background:#F5F5F7;color:#1d1d1f}
+details{margin-top:16px;font-size:13px;color:var(--t2)}
+details summary{cursor:pointer;color:#2997FF;list-style:none}
+details summary::after{content:" ›"}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px}
+td,th{padding:6px 2px;border-bottom:1px solid var(--sep);text-align:left}
+th{color:var(--t3);font-weight:500}
+.fine{font-size:12px;color:var(--t3);line-height:1.5;margin-top:16px}
+/* bottom controls */
+.paddles{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;background:rgba(29,29,31,.72);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:980px;padding:6px 8px}
+.paddles .pb{width:36px;height:36px;border-radius:50%;border:none;background:rgba(210,210,215,.16);color:#f5f5f7;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.paddles .pb:hover{background:rgba(210,210,215,.28)}
+.dots{display:flex;gap:8px;padding:0 4px}
+.dots button{width:8px;height:8px;border-radius:980px;border:none;background:rgba(245,245,247,.35);cursor:pointer;padding:0;transition:width .3s,background .3s}
+.dots button.on{width:28px;background:#f5f5f7}
+.views{position:fixed;right:28px;bottom:26px;display:flex;gap:2px;padding:4px;background:rgba(29,29,31,.72);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:980px}
+.views button{font:inherit;font-size:12px;font-weight:500;color:var(--t2);background:none;border:none;border-radius:980px;padding:7px 12px;cursor:pointer}
+.views button.on{background:rgba(118,118,128,.36);color:var(--t1)}
+.views button:hover:not(.on){color:var(--t1)}
+@media (max-width:1000px){.steps{display:none}#card{left:12px;right:12px;width:auto;top:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px));max-height:44vh}}
+.grab{display:none}
+@media (max-width:760px){
+  .gin{padding:0 14px}.gin img{height:13px}
+  .lnav{height:46px}.lin{padding:0 14px;gap:8px}
+  .ltitle{font-size:15px;white-space:nowrap}.ltitle span,.ltitle .dims{display:none}
+  .opts{gap:2px}.opts button{font-size:11px;padding:5px 7px}
+  #card{top:auto;left:8px;right:8px;bottom:calc(64px + env(safe-area-inset-bottom,0px));max-height:42vh;padding:8px 18px 16px;border-radius:20px}
+  .grab{display:block;width:100%;height:22px;border:none;background:none;cursor:pointer;position:relative}
+  .grab::before{content:"";position:absolute;left:50%;top:8px;width:38px;height:5px;margin-left:-19px;border-radius:3px;background:rgba(245,245,247,.35)}
+  .eyebrow{font-size:12px}
+  #card h1{font-size:22px;margin:3px 0 8px}
+  #card p.cap{font-size:13.5px}
+  .tiles{gap:14px 12px;margin-top:14px}.tile .v{font-size:22px}.tile .v small{font-size:12px}.tile .k{font-size:11.5px}
+  .list{margin-top:14px}.row{font-size:12.5px;padding:9px 0}
+  .pill{margin-top:14px}.fine{font-size:11px}
+  #card.min{max-height:none}
+  #card.min .cap,#card.min .tiles,#card.min .list,#card.min details,#card.min .fine{display:none}
+  .paddles{bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:4px 6px;gap:10px}
+  .paddles .pb{width:32px;height:32px;font-size:18px}
+  .views{flex-direction:column;right:8px;top:100px;bottom:auto;border-radius:14px;padding:3px}
+  .views button{padding:7px 9px;font-size:11px}
+  .lbl{font-size:10px;padding:3px 8px}.lbl.small{font-size:9px;padding:2px 6px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+<nav class="gnav" aria-label="Design steps"><div class="gin">
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAggAAABACAYAAAB/aI9LAAA7BElEQVR42u19eZxdRZX/qap773v9utNZIQkhARRRCSDKMqKoLCKIC6KGGRRRcGFQ0IFREVQ6EQGRUcFtBH+gjsygiQ4jmzKoLTJG1FYEGtmEhJC9s3T6bffeqlPn90dXhcrNvW/r7mzc8/m8Tzrd7946derUqW+dOnUOwE4gIvIAAKSUpyDi74hoH/N7ATnllFNOOeWU0wuPLDio1WpvIKIhIiJEHKhWq3NykJBTTjnllFNOL2BwIKU8ARHLNEqxAQmP1Gq1uTlIyCmnnHLKKacXJjh4IxGNGHCA5l9pQMJgrVabl4OEnHLKKaeccnphgYM3EVE5AQ4oARL+RkT75SAhp5xyyimnnF4Y4OAUIqpkgIMkSHiciPbPQUJOOeWUU0457dng4FQiqqaAA01EKgESFBGRUuqp4eHhF+UgIaeccsopp5z2THDwViKqZYADyvAoWNDw93q9/uIcJOSUU0455ZTTngUO3oaIYRIEIKJ2bjD8shFIQMSnwzB8CQBAf3+/l0s3p5xyyimnnHZvcHAaEUUZngM0xwjnAgAg4jfdGISU44ZlYRi+NAcJOeWUU0455bR7g4N32vwGKeDAfj7gPouIX2sEEhBxeRiGLzft5McNOeWUU0455bSbgYN3NwEHqJR6v13oy+XyIQ5I+EoTkPBsFEXzc5CQU0455ZRTTrsROFBKnYGI0j1GcMEBIqJS6n32OSnllYhYkVK+2wEJX24CEp6LouhQt92ccsopp5xyymkXBQdRFJ1pFnWdckNBj4YSqPc44OAqBzzEURSd6YCELzmgQKeAhFVRFB0GkMck5JRTTjvM1jHz4e6nr6+P27/lUsppTyI2xgnjMcaUUuq9QogfAABPvFcDANNaayI6y/O8H1kAwDm/BADQfJcBgI7j+AOFQuEW852rOOeXmu9w550IAEJrvYZz/mbG2ENEJBhjuLsZG6fvWeNBiZ+JMUYTwAckeMnioyMeiIg7ukEAAGMZL+d4aaueMcZ0g7ZZB7pOaf1vp+9jaHuHjP0YdBba0JVkXyZq7rRr08joDTVpx44htiJ/R9dt//VOmKcTbS+y2h832ee0h3gOlFLvQ0RMOVawv5NKqTMcz8G1Kd4BdI4gznY8CVc08SSsjaLolS4/u4HcxFjjJ8w7+Bie50TkdfoOs1vyxsLDbqz3YmfFv+yMts1Yj6ld+3ynO+zx4GEMIHQr3XDDDf6qVatmLFu2bP+nn376oJUrVx701FNPHbhy5cq5zz777NQFCxaILFvZyVwZJ9nzscieMTbm8ctp9yWvQ6WznoP3M8a+xzm3qJA7ngM+ih/Umb7v/8Qs+F/hnF9svQDOKzkAaM45A4DvK6WE53nfE0J8HhE15/zyhCdBaK0153xmEAS/iOP4VMbYny1fu7DHYOvOeWBgwD/44IP3kVLOLpVKMz3Pm4yIRSGEQEQGACiEiAGgVq1WNxPR2lqttn7mzJlr7TuM0Wl5l2B3ROZ5DQDQ19fnXXjhhTO7urpmlUqlOQAwAxG7ASAwj8VCiEoURetrtdpza9euXcUY2wgAyt1RpO2UiIgxxoiIDkDEd5sxXxfH8VNdXV2/79SLEMfxsZzzAwBgshDCl1LeHwTBgG3PbTsMw5cUCoU3IGIAACBES7ZWm/6FSqkt1Wp1HSKu+ed//ufVjuzteFJWv+v1+oG+779BCBEgImulbUQEIYQCgAgAyuVyeb3v+6vuuOOOVYyxuFnb471Imv6i0RV+4YUX7uN53j7d3d1zGGPTAKBkxpWEEDEiVoloKIqi1dVqdd3MmTPXuePcrrcvyQMAwLp162ZNmTJl+vDw8OTe3t7uYrHYbfgoImIBAHxj23yttQ8AwioiACjOeQgAG4QQP2GMVV29cRZGJKLJURQdzxh7HWPsUM75XMbYdCLqMrYGaPRhyRir3XrrrRtuueWW1Vrrx33f/4tS6g/FYvFxa5PMQq9b9EQk+82HhoZm+b4/e/LkybMAYCoidgkhPABgiIhCiBAAhmu12jrO+doHHnhgLWMsHIPsOWNMu888+eSTe82bN29GpVLpJaKeKVOmdHue58o+sLIHAE9r7THGuNYahBASACIhxDAA3M4YW58m+5z2DM/BOcm8BombC7GU8p2O4bsuI/iQEgmUtMl98EH7rFLq8iaehPVxHB+9q3oSXOQtpXyzlPJ7RPQ3RByhFkkphYi4ARH/KKX8KhEdk/b+Vnio1+sHKKU+GkXRYqXUo4i4efQUqDGNOnjUWqXUr6MoWkRERyVcq8ndDyMigYj/l3yXjSFpdWdl+d+wYUMvIg4lZLNp/fr1s13AYtouIuKjNA6EiFsQ8eEoir5DRMdnyd72e8WKFV2m8Nh4tF1BxMeklDdLKU9qZ9zHsvM0/3ZJKU8Pw/AmInoIEYdb5BmJaINS6sFarXazUmoBEXW3w7flob+/3yOiN0dR9G1EHEDEjUopOQ5yvT7pLbDjF8fxBYi4fIzvD5VSf4jj+BIi2jdrrmT1e2BgwJdSvkVKeQMRPYiIm1qZp6btMiI+pZRaQkTnDA8PT2tzvnHHZp0YRdHXEHEpIq5DxGgcZH9HO/zktHuBgw8mri5uAw4QMZJSvsNRsG9kgIO0WgwuSPiIs2v8XBOQMBTH8at3NZBgjSER7YOId2fNF9OPrE9acSstpbx1ZGRkr2ZG1+GhGxG/7pTbbocPzFgHfu5cPWXJNoeHh6cR0Voz9rH5aCnlyVmu3EYGq16v74+IZcOTtDpVrVZf7bhUGQBAtVqdY0CY/a7q4IMZgO1/iGifpJFzgMy+CT5Vhx+d0vbt1Wp1n4kCCbY/SqkzG4CcdnWFEPEJC/zdcWrEg5TyJET8UwYPdnOSxYvM+ETm73915gazuiilfEfCvkinX7rBBxPfd/u+yRyZFhuNm9PvNxHRwDjKfoVS6sPtAJRqtXoUIt7faJ3vQPYxESlE3OCAlvzoYg8CBx9uBA6IqB6G4WmO5+DbDcBBVi0GN9vi+Y4n4dIMkGCByYY4jl+zq4AEZxc9GREfdHhPMzZpkw0zvicd+fyRiCZlRVE7UdeBUuoXCcPXDh/ud5RzY4WIaH0URfNtWwlQMp2I1iQMG0kp39UJQCiXy4ciokom3orj+JjkwrNhw4Z9iWhzir5RwqBnGdrtZGPatqB0cGRkZIYre/vvqlWr5imlRjLaTi5umNHeNt9NtP0QEU0b7+h5Bxxc0qKuqCa6gskFExGvbrRQWZ1QSp2RiFOSife3Mn5pi7oyi9RfEgDB2rh/Nc9FDcatVb1B1/Yh4tIscOfIvlm/M2XveGGT3yEz765oIntuNmRHIuKWFnho+MniBxHXE9GMHCDsWeDgvEQAYnKBr0kp32aP8YxrrBE4iBHxnmYgIY7jCxxPwiWNQAIRbYzj+NhdASQ4hs4ekUQpuR2wVa9circlMiChz7piG/BwjvNMUm6yRT4yeUDE2xOuaRcgrHWOkGz67LPbGSPHcB3h1PLYupA2AAjDKYu0pvZIN+j3da6cEwChnNGeamPM08bG6tG17YCsVmVcq9XmmRoqyX7rLK9G1slYirdPmfE6otHRVLlc3hsRNzTIidLuGKZ5gW5PjJ21cx/PaBfbbcJ5RtsEcoi4dMWKFV1JYElEbN26dT2IuCKl/U5kj2lzV0p5Qpbe2PlDRP1OvZxObVajI4aHnLZygLCLktcKODABiR8VQnwLzNVF2PYqI9da17XW7/Z9/+6+vj5++eWX38A5/xCMBnu57bgBKecJIb6XEby49f2+73/DBC5eHwTBNUopFEJca9q23+Xm/9OEEHfEcXwaY+y3OytwkTEGjDEcHBwMhBD/aHhLykEYL0uFiNYzxjYDQJ0xpkyAUFFrPRUAZnqe1+s8x5zx00KIMwYHB68+5JBD4pSgH3ut0PIgkmNnPqC1rmqtN3DOhwCgAgCaiIoG6c9yeHDJN228vlKpzGKMrc2a8CaY1VKhU501waxjGh5z9fZvjLFNRIQmho2ba3mciAoA0EtEe3ueN93IbTvZA8C7hoaGPs8YK7dh6ITWuq6U2sI5j+w4EFGAiEXP83zOeRfnXMD2gb/btL1mzZqFWYF2HRAHAB0Ewes454XEfLR9t4BzIwCs45xvhtGASmbc51O01nv7vj8dtg1EBvN/ZXThLQDwZ2febuXBBAi+GgCmGx5S541Sag3n/DkAGDZyBBOUWDTxDpO01j1a6xIA+L7vc601IWJYKBQeF0JckWKTXNuznXy01mUiegIAKiYwlxnZW9l0aa2nMsZmCSFKCdn5ACA558fss88+ZzHGvmsWaVyyZAk/44wzMI7jwzjn+6bYi+1kzxjbxBiL7HzSWk8lor1835+RMm7cyJ48z/soAPx6yZIl24EDxpgOw/DlhULhWPOslzKGgIgVrfVGzvmIGX9rW3wACIjIfnw7dxhjknO+WQjxjNb660IIbdvMl+Ld23NwQSPPASJWpZSnAIxGOiPiTc2OFZRSH3DbQMRrMnYH7q7zYseTcHEaTyY4ihBxuF6vH7ezPAnOTvpAIqon+q8Njz+TUr598+bNB9x+++2ltPfcfffdhdWrV+9HRG9HxF9mvGekVqvNzYoDWLVqVYmInknsguw7/kZEl0spT6rX6y9avHhxT5KHxYsXB5s2bZpXr9dPRsQfpPFg3PxHJnfxrgfBHcs4js9v04MgzLgfkxav0qIHwfZ9RRzHx/T19TU8i+3v7/eWL18+W0p5olLqzgzZo5PZk9txz/Ag2IRhn6vX6wcuXbp0Wn9/f8/tt99e6u/v77n//vun/vSnP529fPnyA4jo0Eql8hZEXIiIz2S0XbOVTscj2MuZi1+0V5QT7W5GxC/GcXzM4ODgrMWLF4s0mT388MMziegopdRnneMlnfCefD9tF+vYnI8leHD7fVMcx8cODg5OazZ+d999d++dd94561e/+tV+RPSiJ5544kX33HPP3k3s3ScS9svalLvr9fr+zeS4dOnSruHh4Rcrpc5FxJUp/UdEvC1hJ+zi/5GEnKyO1xHxq3EcH7ts2bJU2ff19fGBgYEZURS9wnhBHku0bfvx+ODgYJBiLwQAQBiG70yxFfZzs5TylDVr1hywePHinhRQzPr7+73Fixd3PfDAA7333nvv9HvuuWfvu+++e6/bbrttShrfOe3G4CCO4080AQcVKeWbAAAGBwcDKeV/ZrimrIEuK6UW2DYSwUFXNwMJcRx/yolJyOLNntNukVIevzNAguO2fF2Ggfx/TeIW0uIJOCLe57ieNRFppVRoq10mAuZcl/FIirv8XiLqaZcPRLw6xYgREb3O9r0BQJBmHD/aIUB4zRgAgjRA81KXz7RPGg/Ocdg2+lmtVv+hBYAgjU5+pwNdmmEC9XRC12MiOngcAYLdHf4wsUBqIgprtdrrG+lJmtziOD7aAGRMuMl/1AQgXJK2SBPRp9IWxkR2w5Zu9aQcb6QBBJsmPgrD8GUJN3xTvSGiw4mokoh/IET8VeIozoKzRWn9dvPDtCp7IpqJiKuT8RiI+Hci6koBCNbmn5/BwyfHa/OU317YPSgrUIWZY4WLfN+/LuVYweY8qMVx/A7f9/+XiIIlS5YoxtjjzrvTXHc6juPVjiuejCtb+L5/qVLqKuOS0s7z1kWGvu9/WSn1GQAAz/OuR8SPO22R4wbTnPNezvntUsoTjdt+h3sSlFLu0QAZNyXGcfwNM7ED16gxxsh+EkagwBjTRPRt51iARh9hpLWuZw4y591pLn1E/C5jrEJEBZt8KY0PhwefiHgcx//PuBVFYoxbmfQsw63bsn0Zq74T0aDNcuj2s4HsAwNgr0tzQfu+33LbWuufGln7WYuMs9AJM+4btNZXm3Yn8s64ffcMp59ojmTuK5VKvzV8bwVWSbm511sHBgb8IAj+qLV+2DlKIPO+TU3c+a5Q7THmyuXLl3/DSfTFAAAWLVqkzX19+0mOH0uACMu3blEmDABWrF+//lk390gTveFEFDDG/qq1/rk91mpD9m6/HxNC/NBNWNRE9tzozToA6E/KHgA2AEDY4FiqK8EXB4ByFEX/5ehuavxAA51mDt86P1bYDQGCs5sXSqlLhRBfzQAHAABrpZQnd3V1/dIsvHLhwoXked4ViPjpjEUeAKC3UCjcK6V8k120EyDhs1rrLzYCCUKIq5VSlxmQ8A1E/FgKSLDJl3o45z+r1+sn7QyQgIh+ygK5MYqi1abf0jVq262mzxuemIhYrVb7tVLqMUS0hgC01n/t6upaZyYrpbzDS4y13bWMmGcUYwyz+HB4UIwxXalU6lrryhgXbN3h4jUWw7K138ZANeTd7TcRMa31oNa6nAKEWnGbcq01aa2HbAKcrEXGWegQACQRMUT8m9ZattjWmACCvYqXkPvfnMUR3QUxTWaMMTziiCO0sSk3I2JFKcURUWitN5tFM1N/tNY8ZeOy+oADDogMD6pZzIUr0wSI6ERnyzfddFPUysLmgA/b/z8ZoN5Ku90psn/C/r9F2WtHZ//D5E/gWmuOiDUiusU8zzM2FOSMg/13REpZNzqprBxTEkxRs0++7O7GHgTGGG7ZsmUSY+wDdo3LQPkVKeUyR3EtivU8z7sWES/JWOTJBGDdFobhqWkgQQjxea31F5qAhCuVUp83IOHbiHh+A5DQXSwWb5NSnrKjQYLJHrbd8Y3J7MYXLlzYUmCblW9vb+/QE088cfRzzz13hFLq2LVr1x71wAMPnGqDlTImYJbLXHQyYUulUtY7W168iaijwFEppR5NiNc5+b7fbgZHYoxRV1fXFiIaTniEXIDQbCwJnIyA7bSNiCMAUB0HL0orupbWDw+2DdJs5T3IGCPP8254/PHH59dqtWOq1eoxTzzxxHzf9++w32njfZqIYAcvMluB6aJFi3QbC73rIV3Ton6kAiMAsPaxbdn7vn/P448/Pr9cLr8aEV/z3HPPzfc875uNZK+1ju1rnL4SjXXi5bTbkWc9B8YuaCKaxhjbVKvVTioUCndyzg+FbW8iMLMQHFgsFv8vDMNTGGNP2NsCzoL/ZaUUE0J8CbZNk8zMol3yff8nUsp/ZIzdYZ8353SCMdZnbissSnnegoQvjGYYFQs9z/tOHMfa9/0bIP12Q7fneT+VUi5gjN29o243eJ6XdP1rIcTUnp6egxljvyEib+HChTzD8LuFb8C6ERljFQB4MMMYbUdxHJPneZQCXjoCSvV6nZdKJWaMCXNuJ7RjQDqSvT0PzVjEJppiGD1aScq9pV0955wzxoKO3C1aqw7ABXQq45RNxD9Yj5fxMqYdFW2nr/YPhxxyyAoAWOF6K5ss9DpFfrOXL19eICLptMMS7e9Ku1Qy86zibpBa0LGk7A9fsWJFF2Os7mxuqIH8IZFyfC0ArG3Dg1RP2VxMLRQKk4io/Oc//5kbHUnOwbwA057mQXDy82ulVJ/W+g9hGL60VCqtCMPwVHN+6CUMOgcA5JzvXygU7gnD8ODEzhyJSHiedw0iXpriCbA7+y7P8xaHYXh6mifB87wvIOLnG3kSOOd9iHgFAEAQBDci4oeyPAkAUOKc/0RK+dYd4EmwbVfg+XM8d0JdR0RHWlBlPpj4aNeVZ8fKnL96ybiBJgaf0jwI7W4ujQdh65FT4uoib7LIbeMM6GQ37Pu+grEdM3RMjz76qM4ANqINfSh2urGHMVZfbXV8GWMjiTHVnPOjEPGrRLS30c00nd1GX51CP9vpawsLSRKkaACYt//++78l0V6y/V1ugVJKqVZlDwCbEr/TnPN958yZcyMRzUiRu06RO7nHxY7sWyryJoRIAgTknHd3dXWdyRjDI488UqbIHnNwsGd6EDhjDJVSlwkhFhoj/L9RFL2lUCgMEtEpWuu7OOevTHgShJnE+/m+f28URacwxh5J8QR8KY5j7vv+lQlPgJ30Rd/3fxRF0VmMsSUpz39RKaWFEFdmeRI4558z92k/63neTcbzcHNil7EVlADAEuO5uH2iPQlRFG0pFAoxjAYJkgNeXgEAv0fEpUqph4QQyzZu3LiRiIa7u7vLnPOq53k1rXUdEavd3d3DpvDKNoVvWtkxBUGQuqi2WLgoa7FnCXAASineZAdNDrCIO9zdKphgF3sDObKE52Kb3ACtgvJW3c0J2QmeFPgEbBiMnqxIAdjEOb9Ia/1eRPwDAAzGcbxyaGhoc3d392bP80aKxWJFa13TWtcqlcrIzJkzK0k3tpnTuoX+qjSApLX+rlLqxXEc3y+EqDPGgmq1WgIA0d3dvcX3/UcYY9GuVATI8zzWxndXJTwjVvZnAcAJiPgrInpw48aNz3V1da0rFAoj5pZIrLWOS6VS/dFHH62awl4dyV4pFSdsg7VZVyDitFqtdg9jbAtjzEfEotbaD4Kg2tXV9YTJK5IXYNqTKJHC2F7HWmkL6lQqlVlOPvS0rGaEiGvSSi8793sva5AB0ZaF/qes5+M4/kyDLGqWh2ucPp2dkbbWXs8MwzB8h2lj3A2vjdhdtmxZUSn1REoWwqbZyNRohaYqEW1ExKeVUv1Syu/UarX3VSqV2W5bGTzY+gUvMsFJ21xz7DTdca1Wm+sU7XHle6J9X8Y1R3vVimytjnbbDsPwIJPlr5Nrjva7r2uzbQYAYAowPZXSlzc7/c665qiJiGq12mvb0TlH5vuZ2g7bFEQb52uO9prfWQ2y6DUrKFYjok1E9Cwi/l5KeatS6tP2KmgzXh0eLmqhuBum/G5RO2Ob0bZ7zdHalgHHfd/q++z17XcmsxmmXHO0mUKPzZC1ypIBIobmGvMmIlpNRE8ope43sv9suVw+wST+alazxfL71mY2Kq1olJTyxxNlT3PaSWTchsmF1yrxqiiKDjeDvjciPtAEJKyL4/ioBiDhs41AAo6WC3xvyvN24n6qAUiQRkn/zdm9n+UAEEwBJbEDSiYCJKQlP1HJxDmJYj7YCngwlR2vWbVqVSlr4ts+bdq0KTUPwjgCBMvvKW0AhLd20rYBO9WdARDWrVvXo5RantKXt7UAEMi0/Q+dAIR6vX4gItadlNUTARDsVbRep0hTnMi9kKWzDVMAmwXl/2xCtQa1AJLJ2bIKvCXzpFgwc0+n8pgogEBE/5RMNZ0CEBgR8YGBAZ+I7nNSamMi0VHLMk/Yi0eUUuck50gav2EYvrlB+vs02Utjv1MTMOW0+xJPuEeZe3zAOd/H87y7iehVjLH11Wr1bVrr38H2MQn2+3sLIX4ex/FrEmf82txuuDIjpsC60Rjn/Bal1Nnu8/Znczvik/D8/XtKHJcoz/P+FRG/BgBQKBRuAYCzzP3jZEpXaHwteexkUsZyz/NuBIBrDN82wEtbGWitk25rcP6utdZkfkYjd+ScT+ecf3rWrFl3DQ0NTQKT8jU5540cFHQYFNimJ6qdALxOhd/0emIzajFvwXZUq9U8xhhPAdmtxrIQEcUd6pKA9LiP8dRXm1djxJRqfxRG8xHYYz00n7SIenJ11vlsvdIJAK/1PO/nSqnzTEA070A/mOPyRtj2fj9qrbsT82jcxDOGZ4IWZQ9HHnmkrNfrZ2utB8xzruytvXDljc7ftpO71hph9Gj1ECHEzYh4rU0RncWLEKIT2RMRTZozZ04pX1b3IIAghPgEIn4Ono8poMSiPxsA7orj+Kje3t6hSqVymtb6txkgQXPOpwsh7orj+PWJwEM0i/wXEfHyDJAAjDEthPiBUurcDJDwFSnlxbB9IKLlQXHO/8XWemeM3UpE74XRoDibj5xrrWOt9QLP8340kfnAjSFkjLHPKKVOAYA7AGDYAWeeybnvfrj7MQuCnYieA5BizvlxM2bM+IzhP9Xgmgj4iURDBADged6EAwQTcLlTghSnTp2aBNQ2Sr0lT4TWWgdBEHc6V2HigxS36muxWHx848aNr0HEzwLAI/B8XQbP0cFUfU3MTSszZhYrEkJ8PQzDlzcBCbyB3jDnvbY9y9P6Js/vcIrjOGhH9qVS6VnO+esR8WIDFCJX9in2QqTI3mDJ0XoeZpOEnPNPSilPMG2JNmVPGbK3Pw8//fTT1dx7sOeQZwJXrjRXEq+AbQMBLWiYJYS4M47jtwdB8Ifh4eF3TJo06aec8+Nh28BFrrXWnPMpAHCHlPJ0xtivncBDND9fYdpbZJ63u6OtRYSEEDcppTzG2I1OIKF9/msmEPF62PZKIwMAT2uNnPOPmyuQF3ie92OllGaM/dAUoalprc/0ff/2HXHd0SkEdA8A3ENEczZv3nx4T0/PSxlj+xHRTCKa5HleFxGViKjEGOsRQnRrrXs45yXYvviKBQtaa/2+devWXW2yIm4XIGQM84RfkUPEVgwh6xAgkAN2cGdMFhMo6F73JWd334x3ZgLvOvUg7BCAkNDXEQC4amBg4NqXvexl8xHx8FKp9GIAmKu1niaE6IbRxD4lAOg2xYm6iWhSmkzMYqUAIPB9/x8BYGGaZ8+McxrusoBDmViQ2M4TAPC11n9XSi2aIA9CxySECBJztxXZ1wHgawBwXRiGL5NSvqKrq+vFRDRPa72Xax+cn7sZYz0J2Vvd21qsiXP+NgD4NWTnR+Ge52XOXa3137XWZcZYtxCi13g61iilPn3kkUfKvADTHkRuLYREsGJabYMhe9a7adOmyYh4b6OyqG6dBusJSNRdvzyR83y7Us9Kqe1y9jvPX5hWi8Gcd9pgy3+3iDYMw3cj4rPO+fcOr8/Q4tkoX7p0adfIyMiMer3+4nq9flwcx5ch4uNp5YMRcZtCSe7YAgAMDw9PQ8S1SdkaN3JHMQhEtDmlmNY5Tj+zYhA0EVG9Xj+xzbYZAIApA7zROYvvJAbh9Z20XalUZhHRhpR+n5kc30QMgj3LLdtiP+3GIERRdKhzzj4hMQiNbEOzNbC/v784PDw8jYjmRVH0qkql8n5E/K+U4mDKnFf/LI1vZ25fnFGL4QEieuXAwIAPAPzJJ58sENG0crk8cxz62ygG4c/OIt7W++I4vijlfdvEIIxB9ry/v79IRNOIaL9qtXpEpVJ5HyLeTETVtDowydLsrn0ydvK0hMztvH2aiI5bsWJFFwCwxYsXB8PDw9MqlcpsU7Uxpz0dJMRxfEmjAkhEtCGO49cCAAwNDU1yCthkgYQ6Eb05BSRYUNLXAkj4eAOQ8DEHFKQGLiLid2x7a9as2XuiDGoTYOAlPqLdfAbGAD+WmLx2kVqQXPScRXoKIq5xFlUkIgrDcLwBwnl2bFoACMd1skgbQ7jd+yYYINgaDvsg4nb9jqLovS0ChOFqtbpvJwChXC7PR8QdAhDs/Gygsy3pKwCAlPI0IgoTiw0h4l8cuaYVDPp0smAUIqo0IJwmr10MIHy6HYDQquybyd8UytqQUihqaVrbDkB4V8Lm238XTJTsJ3Bda1qELe377b53rMcq7byj3fZa/X5an+y5P3HOkYhEEATXIOKnIL0AEgLAdN/37yCiY/faa6/y+vXr36m1vhvSkylpznkRAG4jorenJEPyPM9bhIgL4fka95Q4MkAhxPVEdJF5XhiebUzCtxDxHHPvN+lW9GC0/vp5SqlvEBGbPXv2+h3sAmOJxDJuohP359QiM07RnuKUKVM2AcC1CReq/XffhAs/6ZpNc7m2nfbX8GcDJyHBQ8u7CCFER8c6Gzdu7NhNPx7eYkjJeeC4whtOQq01lUol3YkLvKenJ9pRRyu2lkIDnW2mr1uTefm+/zOt9X3GHrj8965evbrYRNbgHEcxAHjqySeffNjWhMgqBLQL7sH8NuXfkuwTBZqSRb4CUyjrJ+AU3TJNFPv6+riTfC3ZvpeY20JrvRkAfuuA6l1e9u3UgTBH7W6iqUwAPJ41JiwYb6XdJJ/NqmImCpNRsw1RWp9cd7SNuvc8z/s3RPxX2LYKmJ20GgCmaq3vjOP4DbNnz66uXbt2gdb6jiyQAAAFrfVPpJTvzghcXKS1XgTb305gjmH5qlLqU/ZmgCvEBimDtTmbLHued4/N7LajFNkWT6rX68cj4kJEvDoMw89Xq9W3tzFQtmhPTEQsDMP7TOXGbSopMsamNPA8sAbyaZuq1aqG9HPjlncQSqmOqjpOnz6dEuBkh1EYhjYYKxU4NeuLOYP3WwETSarX69JJHkQTqK8wNDQ0KY7j8xHxS4h4ZRiGF4dh+JKsHW9GoSllFnGutX7S4ds+31UqlRrFrPAU+S4/9NBD4/E20jsIWLY6Bn4URe9HxKsQ8aparXZJHMdHpJWnbiB7NBswTkSDKfrGjzvuuEZzNe1W1ZpHH310s3n31pTWu1kRJtYIlBGRWLFixZyhoaFJTbJysnbe3QoYJ6KuzZs3T2nUrlnsEQCY812d4YWyVTNp8+bNU5w+shbkw/r6+rjdYScZtgv4V00Gw69BSm0DzvlkU0r5Hb7v969YseIf586d+58AcDokAhfN933O+a3m3T9Kqd2wUCkVmYyJriGxbSohxJcRsZsxtsg8I+M4/hcYDeahlMWPa60rWuvThRC/Mp6DHZXPnjHGaNOmTZODIPgx53wvAIBCoQBaa0VE+4HJj94GYOFKqYqJhO9KLM5e1uJhsv+5V+Rs9L3XrluQiNj69euTHgn7btmiF4L5vl+yJZfbaJtXKpVST0/PpLFMyk6pWCyyxJXUUTcMIrVomLrjOJ5CRCvalDkPw9CDbeuhTNRCpqZOnfoeIcS37S+Nzr6EiGzVVNWGQbZexCRYYo3qaWQURCrspvWCWnHvCpPR9tQgCL5vf9/V1QWI+GvG2IltzlXbZikFnOnf/OY3mTYHEdP4KwRBYEHKLjsI1jtcqVRmFYvFxYyxbiLSxkvuA8CnGGO/tN+zCyYiXgYAZ8+aNUsLIYpEdB8AfAwAalYlzfh8XAhxrtY6dDe6nPMiIv7Y87yrW/FQOws111p/WWv9xt7eXkVEzwHARznnq7XWW99j1xMiOldrfRERCUR8jnN+PmPsGTc43bYfRdF8z/O+yTnf22SgvYox9uO+vj6+aNEie7uOtmzZMr27u/vHQogpiKjNtFSXX355wctANXbRvs7cFvg6pBdA6vU872dSytN93//VsmXL3jNv3rwfcs7fnQYSjAH6T6VUwBj7D3NGh86CVWhB4YXpmFRKXSyE+ApsX5LaXska0Vq/w/f9/h1VnCmxA8Kenp75MFrjXcLzec0DADiFMXYzERUapA92QRIZBT2Jcz7Z6ePoWYrnVbKMkanCtt2RAGPs5Yyx20x9d5axE3Z5YIwxGYZhL+d8UpJnIUS5yQ7X5n8AxtjRjLF7iChooW0AAMEYi6WU8wFgqjPmO9KDwIMgYB0el+DoV8VLGWMPmX7LZkjeGCbb7+IE99vqxevg+ZwbbHS95oc5JYy9Bl4T5uBSZYzvPzhzgmD0ymNUr9cbHRXJFG/C4eVyeSZjbJ0JimvluCZLVtSBJ5GByVvSzo5ZCMFafDdwzo8zsrelvRlj7PAtW7ZMZ4xtbNJvV2+QMaYR8XiXd/NzZCtTpvXD9/0o2WchxLz999//UMbYgLEXO1r2bVF3d3dBa/1qIvqY1vpx3/cFAEC5XH7UMYsWlJ3PGLtUKfVeKeWfAGAeAPxcaw2+73/AuOa1Gcs7AOARznlda/0lGK3vcxEAFKWUz7Xh4ROMMYWIX+ScfxAAXg8AGwHgJkT8ARGdlASPJgbkW5zz99Tr9b90dXV9Xmt974YNG14JAGUHdNDIyMhenuf9EgBuNRvoY7XWtxDRsLG7wm6We3t7R6SUlwkhfK01930/0lp/hHP+gWZobJtAwJTAxa3R2c5thYCIbm0QuKhNQOG5bhtSyq80yd5FSqlLHBf1J9N4sulXEXFYSnmc28YORrJumlXtBPpYfp8hogPbeaeU8vRE0JEbpHh2sq9OYF83Ii5PtK8Rca3NKthGv2YT0f+kRDmTkyVPuDcoTPpXN1BQm6ybR7fZ9jwi+mOibZ3MUNgsSJGIOgpSDMPwJSbvfTKD5GlOv7MyKdoAsf52dSmKovmI+KjTpnYy7b3c5XE8jhic20nKaTNWSn2onRTGTz75ZAERr0jTFUR8yMk0yJLzRin1IWMnVOK5/9myZcv0CZqzzYIUWdYxSxMb8IVmQYrOd29Ju70hpbyhXTumlPowIqpkQDMi3pWmM854nJAIhrXP/6Ferx+wK7tqnMDXeYi4qVarzWs2Poh4OyL+T2LOHRqG4WlN7PHNiLhkLHwODQ2dv27dupOdd75RKbXaDeAlItbX18cR8TEiujgxxn9XSn3C6q+jw32I+GDCM3QlIv6pFXuhlHqciBZ5Tc5HrCfhW8aT8O8ZnoQez/P+25RS/vnAwMDZRxxxhAKAs1I8Cfa86ibz7hsR8XrO+ceTu2J4Ph5BSCk/FQTBvwGM3rRIKSMNxp3JtdbDiHhaEAS/3Qmeg6SgR0yxFp7YRR2gtV6KiD+QUj4QRdHKYrFYISItpRRhGBa6u7u7hRCzPM+bzzk/CQCOyfBUkNb6MedoJUk1GK0St5+7K+CczwSA35gF4TdRFP0dEdcjYrlUKslareZxzrsKhcKMQqFwAAC8BhHfKISYDtsWnuJaa4mIy5MIevLkyRWt9RbO+Sz3Gc753pzz+xDxvxHx/jiOVyDiJq115Pu+llJyznmhUChMZYzt63ne0QDwDuONocRutI6IQ20ArY524IVCgUN6DELUovueOOfHEdEvoii6kTH2tMmsqAuFAgEAr1Qqgda6p1Ao7OV53gGMsdcS0akmF4bbbwCAcPPmzdXx9noBwBbYPliYCyG+CwAXIOJ9SqlHpJSrlFIbhRAhAFAYhoWenp7JnPO5nucdCgBv4pwf4vDtzukVNp4obTdJRM8ZV+c284ZzflpPT88RiHiXUurPUsoVSqlNQojQVPoExpio1WpBFEVBb2+vzxgrmhwdTAihpJQV3/dXd3V1PbMDvYmtHglsTOxAOQCQ53kf0VofoZS6TSn1mNZ6XRRFNc/zUCnFGWNeoVDoUUrN7OrqOkgIcTIAvDbFQ0QA8GzCs7uNBymO43WmwJuX0LmjgyD4MyLehYgPaK2XRVG0ERHrpVJJmrkllFJ+GIZBd3d34Pt+EREDxhgnIs05r3DO1xYKhad2QCwY933/KCLqgefj554xOSZcXbtdCPFdIvpWGIZ3lMvlhwqFwiMwmiAsDUR7AIBKqYI59rLJolSrniXb97322uvf7REOYyzinH8CAP7oJLIi8/NsrfWMOI7vMb/3ASDSWv8CAE4AgOsTenM8APzc8BaMDo28k3P+keHh4amMsc3JYwl4PobwPVrrueVy+ZvtIusPN/EkVKWUb7HozLhKsvKpW0T76waeA3vN8V+cBffSBvUcCBE3xXF87M7yHKTs3meYXX+yxoJOyZculVIxIsq0YigphaesDB6zrvqsq0uIeEvKWOiMvO00WhZDZeV6xwQPaHaEXtpuEBG/12bbaXV4strWiDiQuFqZ5UGwzx7foQfhYLMj22YspJQntOBBSOs3mvEOzSdq0PE0mT9sdJyNk87aef7RjGJNukGRJpWhs8n+ROaZi9PmqB27arU6h4jKDWxNUm+UkWWslMrixaWqtSvOznmiPAhXteFBOLXRtfHkXFFKYYN5mvx9nJVbxuVl2bJlRZOIClNq2GSNf6yUik2BuWayj6SUXx0vz1eGB2EuEY0g4t/jOP6rlPIRKeVgFEWHJr7H+vr6eL1e/wAiLiWiIaXUFnN9/+C08Xa9PU4+D9Ehv8IW0lJKfQgRdRiGL3W8oZbPg5VSG508Kj4RMURcSES/THpuEfHBOI7/1X7X2i+l1AbrBUrxINm2BhHxO50ajw9mLFZb8x7Y4jXGLXJTs6psTcDBBQ44+FwjcEBEG5xqeTsNHCQVyalEKVOKNckGhVe2FsZJLBzazRvhFJwSDXh4XdqzKcV3dMZYqIwEWtbofDjJg5Pk55WIKJ22k/3LKj7jti1T2pZp/W8GEKSUJ3UCEKIoOswplLSVl1qtdkxyQjcACOT0lxoYdmxS3IuUUheOxTilgVpbrImIHrWLitNnO9dkgzFzxyu5uMTGRjxljp5Yo6JBUsr/MM+GKfNdtihH7Sx06DxLiPi7xCI9IQABEa9pASBsvaaIiHcmCmUl+93UXiSqP7rFrDYT0X7NZO8ksYtSNjatFIzKkr3l61kiKrYjzw6OGIZrtdprBwcHex588MEpAwMDk5vNFaOXJyHiQ4j4iF2I0zY+rQAEJ6cIa7KuLjByeVeiH26BvKEwDF9u9KRgdOV6RLzD8rB48WKrc79FxC+4343j+Gil1Hoimp51tEdEJ5ocOQe1PS5OZ85pBBLMhLbnskxKeWOTymypu2Sl1Pm27TiO+xpleSSiIcdQ73RwkFBYhojXpSwSMlHBEc3OUCdKVWPaxDe7pk82Q+L2b6aErm7Cg7bJlBBRO4mVMMP4ECLemHUNy2n73JRdsHL77LaVkMHW9s0OXjslZq9O9j8BEDYnZIhSylM7BAiHJ3jSiBiHYXhwGkBAxC2JuIHtPgn5YoZBzZK5vec87jswU1b70QaLMib5z9AXlYgReiyKovmNdNYaZJO58q8NFkCVJbeUOaQTCYOQiB52QWUCIFhAYysVDowBIFyb8r5fphhpRkRsy5Yt0xHxF26/jd5vJ/vkJ0Vv0JH9qnq9flILsudr1qzpTvIwTrK339lcrVbnTDBA2BSG4UEt2MXL7CbDUrVaPdKUlZ+atZhKKX9oYxc6LC/OHM/BsPW+Z4EMRHxaKfXBRLzQX5VSlyVjEBDxy4j420Q/P4WID2d4Rbh5rh8R/7fjjYczid6fGPSkJyEmotOdc99vt+BJcMHBh53gikVp4MAJSByy9eZ3JXCQVAQp5VsRsd8AqI4JEbcopZbEcfzqVt10Tr351yPiHURUobERIuKfoih6v2vcmrT9BkT8dVZt+zYb/0sURWdkuMqsIZ/llIZ269a/sROAQEQvTuGjatP8ujLYsGHDHFueeRwpMqWA3zXehjWtvxs2bOhFxC8g4jPjMF5PGpDf24rOOmM4GRGvQcRnx1mWZI6m3GQ/yVLT7nf/Ck5yoHZspXPEoB23/G+a6C5XSn3U7GLH2s8VRPQVZ0FuSfaDg4NBHMefcVK8j6fs15kqtBMFEPYjorqU8p1hGL5kw4YNB2/cuHH+8PDwNHfRtUGkiFghosOMl2EuIv4vIt6XtvFxnvsxIt6dZkuco7J9ieiGer3+YsufycfDiMgzG8caEb2zXC7PDMPwJfV6ff9EsLkFsecj4iYiOnTVqlUlIroUETeOjIzslUiUxQxAKiulPrZ06dIuIjoaEatKqfekeHrt+48y9vH4rQmcOj2rZIwppdT7GGPf55yzRCCSrSyolFJn+r7/EyPQr3ued2EicBGcZxgRMa31Bz3Pu9mAgy9yzj+bFpBoguOGEPHUIAgGdnZAYjPFtYEpYRgeXCgUXlOtVo/wff9Azvlszvk0IuqG0Wuc3N6vNQE1mxBxlVLq8SAIHojj+LelUmmFHdxWczu4PNTr9RcVi8XXRVF0FGPsIM75bMbYNMZYl0Gi3Ca8IaIQADZrrddKKZeVSqUHpZQPBEHwIIxee2t67cttO4qiVwkhjpNSHu37/jwi2ptz3mPO4rbJoMcYi4moxhjbEMfxSt/3/6K1vu/KK6/83aJFi1RakJtjcITJO/86IkI2Sg9VKpXTe3t7N5lgIWoV4MFoRrn/IKK3mbGJAOAPDz744LtMkRp3PvmI+N8wen2JHN1l8HxpbjdZlL36pRhjkda6yhjbhIhDiPhMEAR/RcTfFwqFQcvTRCanceU6NDQ0acaMGa9GxFfHcfyKIAj2BYC9GGOTrPvSyBIZYxERlQFgfRRFzxUKhQeJ6IH169f/cc6cObXku5vJ3fbx6aefnjxv3rxXeZ73inq9/jIimlssFqcg4mTGWDfnvGDOWj3HDjHHw8IStkMBwKc9z/uuc43M3h8/1PO8n2mtZ9hkNIj4pSAIvtxOFlb73Wq1enSxWPwvE4/EOOeSiL7ged7Xs/TX9ntwcDB46Utf+hoiegMiHhEEwTwA2JuISjBabM8Gflt9LBPRBinlSiHEQ77vPzA8PPyHqVOnDncq+2XLlhVnzpz5qq6ursOjKHp5HMf7lUqlqQAwWWvdY66n+2ZR466O28XQXOK3V1+JMfZ1IcTnxzurreW7Wq3u4/v+PUTkaa0ljWbk647j+Iqenp4fOGNud/HXc87fEsdx2fO8bs/znq7X6x8ulUork1ki7bP1ev1rjLHuYrH4kaQdtv3auHHjIZMmTfodAJwUBMEf7ZVJxhiVy+WZQRAsFUKUpZRbiGiykXm9Wq2eMWPGDNs22dwFUsorGWPvUUqVfd8PEPGcIAh+78rR/lyv108MguA7cRzXPM+bTETfDYLgyqTM3f5wzg8rFApvNIkTO0dudjGOoui9nuf9wFQLS4IENrrG41me5/3YgISvep53UWLBt98lRDzX87wfGHBwFef80hRwgMZYr1dKvblQKPxlVwYHCaS2XaasBQsWiMsuu2xSd3d3T6FQCKSUwvd9rZSSURRV77///pHzzjtPpiHldieXGxmbjLIfGBjomTFjRklrHZjbIJpzHiNi7dxzz63ed999Ku19rQKUxYsXiwULFmzX/+9973vFE088saS1LkgpvVKpxMIwBN/3MQzDeNmyZbWTTz652knbg4ODQalUmh1FERNCqIMOOmgVdJDoJWEw9wcA4Jxv2W+//Yaz3tff3+/NmzdvHwNMWBzHnNsMQYbMu8kYMMU5jznn4V133VU/77zzahlgZYck/GrU1uLFi7sOO+ywbs550fM8AQBg+A/vvffe6jnnnBO2qv+d8mDIu+GGG4I3velNgZTSD4LAi+NYlEolFsexnSNbZb8Vvfl+df/991+T1e5jjz02CQCmF4tFAIDwgAMOWDsWWa5ataoUhuEMzjmXUlYPOuigoQ77zZctW9YrpewpFAoBY4yHYUhCCNnV1VVfvXp19cgjj6ztINnzvr6+4tlnn+0jYhAEgccNubI3xOM4ZkEQEOc8mjt37soJVl920UUXFTnnfNasWQAAUKlU2Jo1a6Ibb7wxNf/IypUrp3uet49Sanjfffd9rlkDCxYsCAAAlixZ0iifB4PRGwcyaSeIiM2fP99fsGBBMH/+fLF+/fqtch4aGqrZXBVJG7R8+fLZxWJxrwsvvPDRJUuWYNpmwf5uYGDAnzt37sHlcnnNgQceuL7RxuKb3/xmzwUXXFCDDjPsNjpu+CcniCx53GDPrs50jgy+nAjW0qNeN3WWcyRxTZOYgzVRFL1yPIO0dqQ3wQSuiDYLdIg2KkJOJA9eq8V6GrTtmXFjnTw3Frfk7lSv3hknj3ZSMZzkuLdknU1a8/EYrxQeRLtZONvRg6zUtePZTqdzbkfPlRQexjT3d9U5mHJEwHdFO2GDEJMbxUbHLVl93FGC9Yzb+IyUcrSUBQAQ0T2Xi90gESnltRYMJK4r2Qjg1VEUHb47goMGE5D19fVx5xyJt1q1bTx5SJxl8fGqVtZq2wkZjLlttz/m3Wwc+OWtGJAUWbbyYTtqzCdAZ3c472kFm/r6+njGXOIdjh0bJz7H/L5dwVY0kn0D3rg7D3cWfy2OUasyZNBaGm3WrgzHi882+9RSfzoGCVLKdzklaTHtyotS6v0OSLgSESthGL7b+d1XMoIZredgZRRFh7nt5pRTTjnllFNOu+6OwoKE020ylBSQgESklVI2zbKwV57Ms9fZ63tp4AARn3MSXYhc6jnllFNOOeW0e4GE05qABCKiD7nPSim/3sRz8KxzfzoHBznllFNOOeW0m4KEt5pEE5kgQSn1EZMu8tuNwAEiLg/D8OXu+3PKKaeccsopp90XJJxqkkBQRh0CSUT9GemWredgWRiGL8vBQU455ZRTTjntWSDhzU42u1YK0bieg2dsqswcHOSUU0455ZTTngcSTjapLCmj8EcaOHi6Xq8faN6TxxzklFNOOeWU0x4KEt5IRCNNPAkWHDxFRC/KwUFOOeWUU045vQBAAhGdQERbMkCCLcH6RL1ez8FBTjnllFNOOb3AQMJxpgyuCxIsOHiMiPbPwUFOOeWUU045vQBBgik5bEFCbMDB3+r1eg4Ocsopp5xyyukFDhJei4jrDDh4sFarzcvBQU455ZRTTjnlIAGklCcS0e9ycJBTTjnllFNOuxb9f4tqy9q34HnOAAAAAElFTkSuQmCC" alt="Sound Sense">
+  <div class="steps" id="dock"><button data-step="1">Room &amp; Entry</button><button data-step="2">Viewing Angles</button><button data-step="3">Speakers</button><button data-step="4">WaveForming</button><button data-step="5">Projector</button></div>
+  <button class="lnk" id="savePng">Save image</button>
+</div></nav>
+<div class="lnav"><div class="lin">
+  <div class="ltitle">Kalady Residence <span>Private Cinema</span><em class="dims">20′-3″ × 23′-9″ · 12′ ceiling</em></div>
+  <div class="opts" id="optSeg"><button data-opt="1">Option 1</button><button data-opt="2">Option 2</button><button data-opt="3">Option 3</button><button data-opt="4">Option 4</button></div>
+</div></div>
+<section id="card" aria-live="polite"><button class="grab" id="grab" aria-label="Show or hide details"></button><div id="cardBody"></div></section>
+<div class="paddles"><button class="pb" id="prev" aria-label="Previous step">‹</button><div class="dots" id="dots"><button data-step="1" aria-label="Step 1"></button><button data-step="2" aria-label="Step 2"></button><button data-step="3" aria-label="Step 3"></button><button data-step="4" aria-label="Step 4"></button><button data-step="5" aria-label="Step 5"></button></div><button class="pb" id="next" aria-label="Next step">›</button></div>
+<div class="views" id="views"><button data-view="iso">3D</button><button data-view="top">Plan</button><button data-view="section">Section</button><button data-view="seat">Seat</button></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+const C=343,H=3.66,WW=6.17,WL=7.24,EYE=1.0,PITCH=.85; let SW=4.267,SH=SW/2.35;
+const LENSES=[[1.09,1.4],[1.28,1.74],[1.58,2.41],[1.89,2.6],[2.0,2.94]];
+const rowU=(n,cx)=>Array.from({length:n},(_,i)=>cx+(i-(n-1)/2)*PITCH);
+/* recliner block: eye sits 0.56 m behind the arm front and 0.29 m ahead of the back */
+const ARM_F=.56, BACK_R=.29;
+
+const OPTS={
+ 1:{name:'Option 1',tag:'Entry over lounge steps',orient:'S',Wl:WW,Ll:WL,screenV:.6,screenBottom:.9,baffle:.5,
+    rows:[{v:4.2,y:0,n:4},{v:6.2,y:.305,n:5,mlp:2}],lounge:true,door:[.12,.95],proj:'booth',
+    riserTxt:'Row 1 on floor · row 2 on +12″',inSteps:'2 × 6″ down each aisle',outSteps:'2 × 6″ up',aisleStep:1,
+    cap:'Two lounge steps lead to a +12″ landing and straight onto the back-row platform. Row 1 sits on the floor. Each side aisle steps down 6″ at a time, and the last step ends at the front of the row-1 armrests.'},
+ 2:{name:'Option 2',tag:'Screen on the long wall',orient:'W',Wl:WL,Ll:WW,screenV:.46,screenBottom:.9,baffle:.4,
+    rows:[{v:3.05,y:0,n:6},{v:5.05,y:.305,n:7,mlp:3}],lounge:false,door:[.55,1.35],proj:'vmm',
+    riserTxt:'Row 1 on floor · row 2 on +12″',inSteps:'2 × 6″ up the aisle',outSteps:'None',aisleStep:1,
+    cap:'Level entry beside the screen, then two 6″ steps up the aisle to the back row. The screen moves to the 23′-9″ wall, so the throw drops to 20′-3″, and the projector stands vertically on a mirror mount at the back wall.'},
+ 3:{name:'Option 3',tag:'Level entry, one step',orient:'S',Wl:WW,Ll:WL,screenV:.6,screenBottom:1.0,baffle:.5,
+    rows:[{v:4.2,y:0,n:4},{v:6.2,y:.18,n:5,mlp:2}],lounge:false,door:[.12,.95],proj:'booth',aisle:true,
+    riserTxt:'Row 1 on floor · row 2 on +7″',inSteps:'1 × 7″ up',outSteps:'None',
+    cap:'The door opens at lounge level onto a floor-level side aisle. One lit 7″ step leads up to a platform that starts right behind row 1, so the back-row footrests extend over it.'},
+ 4:{name:'Option 4',tag:'One curved row, IMAX-style screen',orient:'W',Wl:WL,Ll:WW,screenV:.46,screenBottom:.55,baffle:.4,
+    sw:4.8,sh:4.8/1.9,screenName:'15′-9″ · 1.90 : 1 IMAX-style screen',imax:true,single:true,
+    rows:[{v:4.76,y:0,n:7,curve:6.0,mlp:3}],lounge:false,door:[.55,1.35],proj:'vmm',
+    riserTxt:'All on the floor · no risers',inSteps:'None',outSteps:'None',
+    cap:'One gently curved row of seven recliners, with the MLP on the centre seat, faces a taller, larger 1.90 : 1 screen that fills more of your view, the way an IMAX auditorium does. Everyone sits at almost the same distance from the picture. Level entry, no steps anywhere.'}
+};
+const mapper=o=>o.orient==='S'?(u,y,v)=>new THREE.Vector3(u,y,WL-v):(u,y,v)=>new THREE.Vector3(v,y,u);
+
+function geom(o){ const cx=o.Wl/2,r1=o.rows[0],r2=o.rows[1]||o.rows[0];
+  o.rows.forEach(r=>{ r.us=rowU(r.n,cx);
+    r.pos = r.curve ? r.us.map((_,i)=>{ const ph=(i-(r.n-1)/2)*PITCH/r.curve; return {u:cx+r.curve*Math.sin(ph),v:r.v-r.curve+r.curve*Math.cos(ph),ph}; })
+                    : r.us.map(u=>({u,v:r.v,ph:0})); });
+  return {cx,r1,r2,single:r1===r2,mlp:{u:cx,v:r2.v,y:r2.y+EYE},ear1:r1.y+EYE,d1:r1.v-o.screenV,d2:r2.v-o.screenV}; }
+function viewAngle(o,u,v){ const a=Math.atan2((o.Wl/2-SW/2)-u,v-o.screenV), b=Math.atan2((o.Wl/2+SW/2)-u,v-o.screenV); return Math.abs(b-a)*180/Math.PI; }
+
+/* speakers — Trinnov guide rules, Dolby Atmos 9.1.6 */
+function speakers(o){ const g=geom(o),s=[],yS=g.mlp.y+.3,yL=o.screenBottom+.38*SH,lr=Math.min(SW/2-.3,2.3);
+  s.push({n:'L',u:g.cx-lr,v:.3,y:yL},{n:'C',u:g.cx,v:.3,y:yL},{n:'R',u:g.cx+lr,v:.3,y:yL});
+  // side surrounds centred between the rows, 30 cm above the mid listening plane, placed so the path length (time of arrival) is identical to row 1 and row 2
+  const e1=g.ear1,e2=g.mlp.y,ySide=(e1+e2)/2+.3,D=g.r2.v-g.r1.v,A=ySide-e1,Bh=ySide-e2,sv=g.single?g.r2.v+.15:g.r1.v+(D*D+Bh*Bh-A*A)/(2*D);
+  s.push({n:'Ls',u:.1,v:sv,y:ySide,w:1},{n:'Rs',u:o.Wl-.1,v:sv,y:ySide,w:1});
+  s.sideDist=[Math.hypot(o.Wl/2-.1,sv-g.r1.v,ySide-e1),Math.hypot(o.Wl/2-.1,g.r2.v-sv,ySide-e2)];
+  const ro=Math.max(.9,o.Ll-.1-g.r2.v); s.push({n:'Lrs',u:g.cx-ro,v:o.Ll-.1,y:yS},{n:'Rrs',u:g.cx+ro,v:o.Ll-.1,y:yS});
+  const mU=((g.cx-lr)+.1)/2,mV=(.3+sv)/2,t=(g.cx-.1)/(g.cx-mU),wv=g.mlp.v-(g.mlp.v-mV)*t;
+  s.push({n:'Lw',u:.1,v:wv,y:(yL+yS)/2,w:1},{n:'Rw',u:o.Wl-.1,v:wv,y:(yL+yS)/2,w:1});
+  const tu=Math.min(lr,g.cx-.45),tf=Math.max(o.screenV+.9,g.r1.v-(g.single?1.3:1)),tm=g.single?g.r2.v-.1:(g.r1.v+g.r2.v)/2+.5,tr=Math.min(o.Ll-.25,g.r2.v+(g.single?1:.8));
+  [['tf',tf],['tm',tm],['tr',tr]].forEach(([k,v])=>s.push({n:'L'+k,u:g.cx-tu,v,y:H-.05,top:1},{n:'R'+k,u:g.cx+tu,v,y:H-.05,top:1}));
+  s.forEach(p=>{ p.az=Math.atan2(Math.abs(p.u-g.cx),g.mlp.v-p.v)*180/Math.PI; if(p.top) p.el=Math.atan2(H-.05-g.mlp.y,Math.hypot(p.u-g.cx,p.v-g.mlp.v))*180/Math.PI; });
+  return s; }
+function wfSubs(o){ const a=[];let i=1,j=1;[1,3,5].forEach(k=>[1,3].forEach(r=>a.push({n:'F'+(i++),u:o.Wl*k/6,y:H*r/4,v:.26,front:1})));[1,3].forEach(k=>[1,3].forEach(r=>a.push({n:'R'+(j++),u:o.Wl*k/4,y:H*r/4,v:o.Ll-.14,front:0})));return a; }
+const convSubs=o=>[{u:.45,y:.35,v:.3,front:1},{u:o.Wl-.45,y:.35,v:.3,front:1}];
+function lensFor(o){ const L=o.proj==='booth'?{v:o.Ll+.3,y:2.75}:{v:o.Ll-.42,y:2.6}; const th=L.v-o.screenV,tr=th/SW; return {L,th,tr,lens:LENSES.find(l=>tr>=l[0]&&tr<=l[1])}; }
+
+/* room-mode model for seat levels */
+const modeCache={};
+function modes(o){ const k=o.Wl+'x'+o.Ll; if(modeCache[k]) return modeCache[k]; const m=[]; for(let a=0;a<=8;a++)for(let b=0;b<=4;b++)for(let c=0;c<=9;c++){ const f=C/2*Math.sqrt((a/o.Wl)**2+(b/H)**2+(c/o.Ll)**2); if(f<240) m.push({a,b,c,f}); } return modeCache[k]=m; }
+function modal(o,src,u,y,v,f){ let re=0,im=0; for(const m of modes(o)){ const pr=Math.cos(m.a*Math.PI*u/o.Wl)*Math.cos(m.b*Math.PI*y/H)*Math.cos(m.c*Math.PI*v/o.Ll); let s=0; for(const q of src) s+=Math.cos(m.a*Math.PI*q.u/o.Wl)*Math.cos(m.b*Math.PI*q.y/H)*Math.cos(m.c*Math.PI*q.v/o.Ll); const dr=m.f*m.f-f*f,di=f*Math.max(m.f,8)/9,d=dr*dr+di*di; re+=pr*s*dr/d; im-=pr*s*di/d; } return Math.hypot(re,im); }
+function seatLevels(o,seats){ const src=convSubs(o),fr=[]; for(let f=30;f<=100;f+=2) fr.push(f);
+  const lv=seats.map(s=>fr.map(f=>20*Math.log10(modal(o,src,s.u,s.y,s.v,f)+1e-12)));
+  let worst=0; fr.forEach((_,k)=>{ const col=lv.map(r=>r[k]); worst=Math.max(worst,Math.max(...col)-Math.min(...col)); });
+  const avg=lv.map(r=>r.reduce((a,b)=>a+b,0)/r.length), m=avg.reduce((a,b)=>a+b,0)/avg.length;
+  return {rel:avg.map(a=>a-m),worst}; }
+
+/* ---------- renderer ---------- */
+const stage=document.getElementById('stage');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1)); renderer.setClearColor(0x000000,0); renderer.localClippingEnabled=true; stage.appendChild(renderer.domElement);
+const scene=new THREE.Scene(), persp=new THREE.PerspectiveCamera(58,1,.05,120), ortho=new THREE.OrthographicCamera(-5,5,5,-5,-100,200); let camera=ortho;
+scene.add(new THREE.HemisphereLight(0xffffff,0x6a6a6a,.9));
+const k1=new THREE.DirectionalLight(0xffffff,.5); k1.position.set(-5,12,-7); scene.add(k1);
+const k2=new THREE.DirectionalLight(0xffffff,.22); k2.position.set(9,6,10); scene.add(k2);
+const MAT=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.9,metalness:0},o));
+const M={floor:MAT(0xDAD8D3),wall:MAT(0xEFEEEA,{side:THREE.DoubleSide}),ghost:MAT(0xEFEEEA,{transparent:true,opacity:.05,depthWrite:false}),
+ baffle:MAT(0xD0CEC9),baffleG:MAT(0xD0CEC9,{transparent:true,opacity:.1,depthWrite:false}),riser:MAT(0xC9C6C0),led:new THREE.MeshBasicMaterial({color:0xF3C77B}),
+ rShell:MAT(0xE7E4DF,{roughness:.7}),rSeat:MAT(0xD9D5CE,{roughness:.75}),rBase:MAT(0x6a6a6a,{roughness:.6}),cup:MAT(0x2a2a2a),
+ body:MAT(0xB8B3AB,{roughness:.8}),bodyM:MAT(0xA59E94,{roughness:.8}),
+ spk:MAT(0x2B2B2B,{roughness:.6}),subF:MAT(0x1a1a1a,{roughness:.5}),subR:MAT(0x4a4a4a,{roughness:.5}),
+ door:MAT(0xB9A58E),lounge:MAT(0x2E2E30),proj:MAT(0x2E2E2E,{roughness:.5,metalness:.2}),rack:MAT(0x3a3a3a,{roughness:.45,metalness:.3}),
+ booth:MAT(0xBEBBB5,{transparent:true,opacity:.25,depthWrite:false}),frame:MAT(0x8d8d8d,{metalness:.4,roughness:.4}),mirror:MAT(0xdfe6ea,{metalness:.9,roughness:.1})};
+const EDGE=new THREE.LineBasicMaterial({color:0x96938D});
+const root=new THREE.Group(); scene.add(root);
+const labelsEl=document.getElementById('labels'); let labels=[],walls=[],G={},P=null,O=null,Gm=null;
+const edges=m=>{ m.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry,25),EDGE)); return m; };
+function box(x0,x1,y0,y1,z0,z1,mat,par,noE){ const m=new THREE.Mesh(new THREE.BoxGeometry(Math.max(.002,x1-x0),Math.max(.002,y1-y0),Math.max(.002,z1-z0)),mat); m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2); if(!noE) edges(m); (par||root).add(m); return m; }
+function lbox(u0,u1,v0,v1,y0,y1,mat,par,noE){ const a=P(u0,y0,v0),b=P(u1,y1,v1); return box(Math.min(a.x,b.x),Math.max(a.x,b.x),y0,y1,Math.min(a.z,b.z),Math.max(a.z,b.z),mat,par,noE); }
+function label(t,pos,cls,grp){ const el=document.createElement('div'); el.className='lbl '+(cls||''); el.textContent=t; labelsEl.appendChild(el); const l={el,pos,grp:grp||'base'}; labels.push(l); return l; }
+function lines(pts,color,par,op){ const l=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color,transparent:op!==undefined,opacity:op===undefined?1:op})); (par||root).add(l); return l; }
+function clear(){ while(root.children.length){ const c=root.children.pop(); c.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); } labels.forEach(l=>l.el.remove()); labels=[]; walls=[]; G={}; waves.length=0; }
+
+let state={opt:1,step:1,bass:'wf',view:'iso'};
+const waves=[];
+
+function screenTex(){ const c=document.createElement('canvas'); c.width=512;c.height=218; const x=c.getContext('2d'); const g=x.createLinearGradient(0,0,0,218);
+  g.addColorStop(0,'#5d6f7f');g.addColorStop(.55,'#c9b79c');g.addColorStop(.6,'#e9d3ae');g.addColorStop(1,'#3d3a36'); x.fillStyle=g;x.fillRect(0,0,512,218);
+  x.fillStyle='#2c2a27';x.beginPath();x.moveTo(0,168);for(let i=0;i<=512;i+=16)x.lineTo(i,152+Math.sin(i*.02)*13+Math.sin(i*.07)*5);x.lineTo(512,218);x.lineTo(0,218);x.fill(); return new THREE.CanvasTexture(c); }
+
+/* recliner (Trinnov-drawing style) with a seated figure; canonical frame faces +z */
+function recliner(u,y,v,mlp,ph=0){
+  const g=new THREE.Group(); const add=(geo,mat,x,yy,z,rx,e)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,yy,z); if(rx) m.rotation.x=rx; if(e) edges(m); g.add(m); return m; };
+  const B=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+  add(B(.8,.1,.9),M.rBase,0,.05,-.02,0,1);                                   // plinth
+  add(B(.13,.52,.86),M.rShell,-.335,.36,-.01,0,1); add(B(.13,.52,.86),M.rShell,.335,.36,-.01,0,1);   // arms
+  add(new THREE.CylinderGeometry(.04,.04,.012,20),M.cup,-.335,.625,.3); add(new THREE.CylinderGeometry(.04,.04,.012,20),M.cup,.335,.625,.3);
+  add(B(.54,.18,.6),M.rSeat,0,.39,.08,0,1);                                  // seat cushion
+  add(B(.54,.66,.2),M.rShell,0,.78,-.33,-.2,1);                              // back
+  const hr=add(new THREE.CylinderGeometry(.085,.085,.5,20),M.rSeat,0,1.08,-.4); hr.rotation.z=Math.PI/2;   // headrest roll
+  add(B(.52,.24,.08),M.rSeat,0,.24,.44,0,1);                                 // closed footrest
+  const bm=mlp?M.bodyM:M.body;                                               // seated figure
+  add(B(.36,.5,.2),bm,0,.76,-.16,-.22); add(B(.32,.14,.46),bm,0,.53,.12); add(new THREE.SphereGeometry(.1,20,16),bm,0,1.03,-.2);
+  const fu=-Math.sin(ph),fv=-Math.cos(ph), fw=O.orient==='S'?{x:fu,z:-fv}:{x:fv,z:fu};   // facing the centre of the curve
+  const c=P(u,y,v); g.position.set(c.x+fw.x*.14,y,c.z+fw.z*.14); g.rotation.y=Math.atan2(fw.x,fw.z); root.add(g);
+}
+
+function build(){
+  clear(); O=OPTS[state.opt]; SW=O.sw||4.267; SH=O.sh||SW/2.35; P=mapper(O); Gm=geom(O);
+  document.querySelectorAll('#optSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.opt===state.opt));
+  const T=.23,W=WW,L=WL,cx=Gm.cx;
+  box(0,W,-.04,0,0,L,M.floor); box(-1.8,W+.6,-.06,-.02,-3.4,-T,M.lounge,null,true);
+  label('Family lounge',new THREE.Vector3(W*.62,.05,-2.3),'small','e');
+  const wg=(nx,nz)=>{ const g=new THREE.Group(); g.userData.n=new THREE.Vector3(nx,0,nz); root.add(g); walls.push(g); return g; };
+  const [d0,d1]=O.door,fl=O.lounge?.305:0,dH=fl+2.15,port=O.proj==='booth';
+  const N=wg(0,-1); box(-T,d0,0,H,-T,0,M.wall,N); box(d0,d1,dH,H,-T,0,M.wall,N);
+  if(port){ box(d1,W/2-.3,0,H,-T,0,M.wall,N); box(W/2+.3,W+T,0,H,-T,0,M.wall,N); box(W/2-.3,W/2+.3,0,2.5,-T,0,M.wall,N); box(W/2-.3,W/2+.3,3.0,H,-T,0,M.wall,N); } else box(d1,W+T,0,H,-T,0,M.wall,N);
+  const S=wg(0,1); box(-T,W+T,0,H,L,L+T,M.wall,S); const Wg=wg(-1,0); box(-T,0,0,H,0,L,M.wall,Wg); const E=wg(1,0); box(W,W+T,0,H,0,L,M.wall,E);
+  box(d0,d0+.05,fl,dH,-.9-T,-T,M.door);
+  if(O.lounge){ box(d0-.12,d1+.4,0,.305,-1.1,-T,M.riser); box(d0-.12,d1+.4,0,.152,-1.45,-1.1,M.riser); box(d0-.12,d1+.4,.15,.158,-1.12,-1.09,M.led,null,true);
+    label('2 steps up to +12″ landing',new THREE.Vector3(d1+.35,.55,-1.45),'','e'); }
+  label('Entry',new THREE.Vector3((d0+d1)/2,dH+.25,-.5),'strong','e');
+  { const g=G.dim=new THREE.Group(); root.add(g); const y=.02, o=.45, tk=.18, c=0xF5F5F7;
+    lines([new THREE.Vector3(0,y,L+o),new THREE.Vector3(W,y,L+o), new THREE.Vector3(0,y,L+o-tk),new THREE.Vector3(0,y,L+o+tk), new THREE.Vector3(W,y,L+o-tk),new THREE.Vector3(W,y,L+o+tk)],c,g);
+    lines([new THREE.Vector3(W+o,y,0),new THREE.Vector3(W+o,y,L), new THREE.Vector3(W+o-tk,y,0),new THREE.Vector3(W+o+tk,y,0), new THREE.Vector3(W+o-tk,y,L),new THREE.Vector3(W+o+tk,y,L)],c,g);
+    lines([new THREE.Vector3(W+o,0,L+o),new THREE.Vector3(W+o,H,L+o)],c,g);
+    label('20′-3″  ·  6.17 m',new THREE.Vector3(W/2,.1,L+o),'strong','e');
+    label('23′-9″  ·  7.24 m',new THREE.Vector3(W+o,.1,L/2),'strong','e');
+    label('12′ ceiling  ·  3.66 m',new THREE.Vector3(W+o,H/2,L+o),'strong','e'); }
+  box(W/2-.3,W/2+.3,0,2.0,-1.03,-T,M.rack); label('AV rack · 42U · 600 × 800',new THREE.Vector3(W/2,2.2,-.65),'small','e');
+  // screen wall
+  G.baffle=lbox(.02,O.Wl-.02,.02,O.baffle,0,H-.02,M.baffle);
+  const sm=new THREE.Mesh(new THREE.PlaneGeometry(SW,SH),new THREE.MeshBasicMaterial({map:screenTex(),transparent:true,opacity:1})); G.screen=sm; sm.position.copy(P(cx,O.screenBottom+SH/2,O.screenV)); sm.rotation.y=O.orient==='S'?Math.PI:Math.PI/2; root.add(sm);
+  label((O.screenName||'14′ scope screen')+' · bottom '+O.screenBottom.toFixed(2)+' m',P(cx,O.screenBottom+SH+.3,O.screenV),'','base');
+  // floor levels: row-1 riser from its armrest front to behind its back; row-2 platform behind that
+  const r1=Gm.r1,r2=Gm.r2;
+  const pv=r1.v+BACK_R+.06;                               // platform starts right behind the row-1 recliner backs
+  if(O.aisleStep){ const a0=r1.v-ARM_F, uL=r1.us[0]-.42, uR=r1.us[r1.n-1]+.42;
+    lbox(.02,O.Wl-.02,pv,O.Ll,0,r2.y,M.riser); lbox(.02,O.Wl-.02,pv,pv+.03,r2.y-.018,r2.y+.004,M.led,null,true);
+    [[.02,uL-.04],[uR+.04,O.Wl-.02]].forEach(([u0,u1])=>{ if(u1-u0<.35) return; lbox(u0,u1,a0,pv,0,.152,M.riser); lbox(u0,u1,a0,a0+.03,.134,.156,M.led,null,true); });
+    label('6″ aisle step · ends at row-1 armrest front',P(.55,.45,a0-.05),'','e');
+    label('+12″ platform',P(.55,.5,pv+.7),'small','e'); label('Row 1 on floor',P(r1.us[0],.2,a0-.35),'small','e'); }
+  else if(O.single){ label('Level floor · no steps',P(.6,.2,3.2),'strong','e'); }
+  else { const u0=.95; lbox(u0,O.Wl-.02,pv,O.Ll,0,r2.y,M.riser); lbox(u0,O.Wl-.02,pv,pv+.03,r2.y-.018,r2.y+.004,M.led,null,true); lbox(u0,u0+.03,pv,O.Ll,r2.y-.018,r2.y+.004,M.led,null,true);
+    label('Floor-level aisle',P(.5,.25,5.9),'small','e'); label('One lit 7″ step',P(.98,.45,pv+.4),'strong','e'); label('Platform from row-1 back',P(3.1,.35,pv+.25),'small','e'); }
+  // recliners with seated figures
+  Gm.seats=[];
+  O.rows.forEach((r,ri)=>r.pos.forEach((p,i)=>{ const m=r.mlp===i; recliner(p.u,r.y,p.v,m,p.ph); Gm.seats.push({u:p.u,v:p.v,y:r.y+EYE,m,row:ri+1}); }));
+  if(Gm.single){ const lp=r1.pos[r1.n-1]; label('One curved row · '+r1.n+' recliners · MLP centre',P(lp.u+.7,1.4,lp.v),'small','base'); }
+  else { label('Row 1 · '+r1.n+' recliners',P(r1.us[r1.n-1]+.85,1.35+r1.y,r1.v),'small','base');
+    label('Row 2 · '+r2.n+' recliners · MLP centre',P(r2.us[r2.n-1]+.6,1.7,r2.v),'small','base'); }
+  buildAngles(); buildSpeakers(); buildBass(); buildProjector(); applyStep(false);
+}
+
+/* viewing angles at eye level from each seated head */
+function buildAngles(){ const g=G.ang=new THREE.Group(); root.add(g); const cx=Gm.cx;
+  const picks=Gm.single?[Gm.seats[0],{u:cx,v:Gm.mlp.v,y:Gm.mlp.y}]:[Gm.seats.find(s=>s.row===1&&Math.abs(s.u-(cx-PITCH/2))<.01)||Gm.seats[0], Gm.seats.find(s=>s.m)];
+  picks.forEach((s,i)=>{ const h=P(s.u,s.y,s.v-.06), eL=P(cx-SW/2,s.y,O.screenV), eR=P(cx+SW/2,s.y,O.screenV);
+    const geo=new THREE.BufferGeometry().setFromPoints([h,eL,eR]); geo.setIndex([0,1,2]); geo.computeVertexNormals();
+    g.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:i?0x30D158:0xFF9F0A,transparent:true,opacity:.2,side:THREE.DoubleSide,depthWrite:false})));
+    lines([h,eL,h,eR],i?0x30D158:0xFF9F0A,g);
+    const ang=viewAngle(O,s.u,s.v); s.ang=ang;
+    label((Gm.single?(i?'Centre · ':'End seat · '):(i?'Row 2 MLP · ':'Row 1 · '))+ang.toFixed(0)+'°',P(s.u,s.y+.35,s.v-.9),i?'good':'strong','ang'); });
+  Gm.ang1=picks[0].ang; Gm.ang2=picks[1].ang;
+  [[.84,'Closest · 61°'],[1.26,'Reference · 44°']].forEach(([k,t])=>{ const v=O.screenV+k*SW; if(v>O.Ll-.05) return; lines([P(.05,.02,v),P(O.Wl-.05,.02,v)],0x8e8e93,g,.8); label(t+' ('+k+'× screen width)',P(O.Wl-1.1,.12,v),'small','ang'); });
+  if(Gm.single){ Gm.clr=null; return; }
+  const m=Gm.mlp,sb=P(cx,O.screenBottom,O.screenV),st=P(cx,O.screenBottom+SH,O.screenV),e=P(cx,m.y,m.v); lines([e,sb,e,st],0xFF453A,g);
+  const clr=O.screenBottom+(m.y-O.screenBottom)*Gm.d1/Gm.d2-Gm.ear1; Gm.clr=clr;
+  label('Sightline clears row 1 by '+Math.round(clr*1000)+' mm',P(cx,Gm.ear1+Math.max(0,clr)+.35,Gm.r1.v-.4),clr>=.1?'strong':'alert','ang'); }
+
+function buildSpeakers(){ const g=G.spk=new THREE.Group(); root.add(g); const m=P(Gm.mlp.u,Gm.mlp.y,Gm.mlp.v),pts=[];
+  speakers(O).forEach(s=>{ const mesh=s.top?new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.05,24),M.spk):new THREE.Mesh(new THREE.BoxGeometry(.26,.36,.2),M.spk);
+    mesh.position.copy(P(s.u,s.y,s.v)); if(s.w) mesh.rotation.y=O.orient==='S'?Math.PI/2:0; g.add(mesh); pts.push(m,mesh.position.clone());
+    label(s.n+'  '+(s.top?Math.round(s.el)+'° up':Math.round(s.az)+'°'),P(s.u,s.y+(s.top?.2:.33),s.v),'small','spk'); });
+  wfSubs(O).forEach(s=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(.46,.46,.4),s.front?M.subF:M.subR); edges(m); m.position.copy(P(s.u,s.y,s.v)); g.add(m); label(s.n,P(s.u,s.y+.36,s.v),'small','spk'); });
+  lines(pts,0xAEAAA3,g,.6); const mk=new THREE.Mesh(new THREE.SphereGeometry(.06,16,12),new THREE.MeshBasicMaterial({color:0xFF453A})); mk.position.copy(m); g.add(mk); }
+
+/* WaveForming: 3D wavefronts. Front array launches flat fronts, rear array absorbs.
+   Corner subs: spherical fronts plus their wall reflections (image sources), clipped to the room. */
+const CLIP=[new THREE.Plane(new THREE.Vector3(1,0,0),0),new THREE.Plane(new THREE.Vector3(-1,0,0),WW),new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Plane(new THREE.Vector3(0,-1,0),H),new THREE.Plane(new THREE.Vector3(0,0,1),0),new THREE.Plane(new THREE.Vector3(0,0,-1),WL)];
+let sheetTex=null, sphereGeo=new THREE.SphereGeometry(1,48,28);
+function mkSheetTex(){ const c=document.createElement('canvas'); c.width=256;c.height=160; const x=c.getContext('2d');
+  const g=x.createRadialGradient(128,80,10,128,80,150); g.addColorStop(0,'rgba(255,95,70,1)'); g.addColorStop(.7,'rgba(230,60,45,.85)'); g.addColorStop(1,'rgba(200,40,35,.55)'); x.fillStyle=g; x.fillRect(0,0,256,160); return new THREE.CanvasTexture(c); }
+function buildBass(){ const g=G.bass=new THREE.Group(); root.add(g); G.subMeshes=[];
+  (state.bass==='wf'?wfSubs(O):convSubs(O)).forEach(s=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(.46,.46,.4),s.front?M.subF:M.subR); edges(m); m.position.copy(P(s.u,s.y,s.v)); g.add(m); G.subMeshes.push({m,front:s.front}); if(s.n) label(s.n,P(s.u,s.y+.36,s.v),'small','bass'); });
+  if(state.bass==='wf'){ label('Emit · front wall',P(Gm.cx,H+.18,.3),'strong','bass'); label('Absorb · rear wall',P(Gm.cx,H+.18,O.Ll-.15),'strong','bass'); }
+  G.waves=new THREE.Group(); g.add(G.waves); sheetTex=sheetTex||mkSheetTex();
+  const lv=seatLevels(O,Gm.seats); Gm.worst=lv.worst;
+  Gm.seats.forEach((s,i)=>{ const d=lv.rel[i]; label(state.bass==='wf'?'even':(d>=0?'+':'')+d.toFixed(1)+' dB',P(s.u,s.y+.32,s.v),state.bass==='wf'?'good':(Math.abs(d)>2?'alert':''),'bass'); });
+  G.spawnT=0; G.t=0; }
+function spawn(){ const o=O,cx=Gm.cx;
+  if(state.bass==='wf'){ const mat=new THREE.MeshBasicMaterial({map:sheetTex,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false});
+    const sh=new THREE.Mesh(new THREE.PlaneGeometry(o.Wl-.08,H-.08),mat); sh.rotation.y=o.orient==='S'?0:Math.PI/2;
+    const ed=new THREE.LineSegments(new THREE.EdgesGeometry(sh.geometry),new THREE.LineBasicMaterial({color:0xff6b5e,transparent:true,opacity:0})); sh.add(ed);
+    G.waves.add(sh); waves.push({type:'sheet',m:sh,ed,v:.35});
+    wfSubs(o).filter(s=>s.front).forEach(s=>{ const m=new THREE.Mesh(sphereGeo,new THREE.MeshBasicMaterial({color:0xff5a46,transparent:true,opacity:.3,depthWrite:false,side:THREE.DoubleSide,clippingPlanes:CLIP})); m.position.copy(P(s.u,s.y,s.v)); m.scale.setScalar(.01); G.waves.add(m); waves.push({type:'let',m,r:0}); });
+  } else {
+    convSubs(o).forEach(s=>{ const pts=[[s.u,s.y,s.v],[-s.u,s.y,s.v],[2*o.Wl-s.u,s.y,s.v],[s.u,-s.y,s.v],[s.u,2*H-s.y,s.v],[s.u,s.y,-s.v],[s.u,s.y,2*o.Ll-s.v]];
+      pts.forEach((p,k)=>{ const m=new THREE.Mesh(sphereGeo,new THREE.MeshBasicMaterial({color:k?0xff8a70:0xff4a3a,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,clippingPlanes:CLIP})); m.position.copy(P(p[0],p[1],p[2])); m.scale.setScalar(.01); G.waves.add(m); waves.push({type:'sph',m,r:0,img:k>0}); }); }); } }
+const SPEED=1.45, EVERY=.85;
+function tickWaves(dt){ if(!G.waves) return; G.t+=dt; G.spawnT-=dt; if(G.spawnT<=0){ spawn(); G.spawnT=EVERY; }
+  for(let i=waves.length-1;i>=0;i--){ const w=waves[i];
+    if(w.type==='sheet'){ w.v+=SPEED*dt; const fin=Math.min(1,(w.v-.35)/.5), fout=Math.min(1,Math.max(0,(O.Ll-.12-w.v)/.7)); const op=.36*fin*fout; w.m.material.opacity=op; w.ed.material.opacity=op*1.6; w.m.position.copy(P(Gm.cx,H/2,w.v)); if(w.v>O.Ll-.12){ G.waves.remove(w.m); w.m.geometry.dispose(); waves.splice(i,1); } }
+    else if(w.type==='let'){ w.r+=SPEED*dt; w.m.scale.setScalar(Math.max(.01,w.r)); w.m.material.opacity=.3*Math.max(0,1-w.r/.7); if(w.r>.7){ G.waves.remove(w.m); waves.splice(i,1); } }
+    else { w.r+=SPEED*dt; w.m.scale.setScalar(Math.max(.01,w.r)); w.m.material.opacity=(w.img?.14:.22)*Math.max(0,1-w.r/9.5); if(w.r>9.5){ G.waves.remove(w.m); waves.splice(i,1); } } }
+  const rear=waves.some(w=>w.type==='sheet'&&w.v>O.Ll-.8);
+  G.subMeshes.forEach(s=>{ const k=1+(s.front?.06*Math.max(0,Math.sin(G.t*2*Math.PI/EVERY)):(rear?.07:0)*Math.abs(Math.sin(G.t*9))); s.m.scale.setScalar(k); }); }
+
+/* projector */
+function buildProjector(){ const g=G.proj=new THREE.Group(); root.add(g); const lf=lensFor(O),cx=Gm.cx,L=lf.L;
+  if(O.proj==='booth'){ // normal (horizontal) mount on a shelf above the rack, lens at the rear-wall port
+    box(WW/2-.355,WW/2+.355,L.y-.3,L.y+.247,-1.07-.3,-.3,M.proj,g); lbox(cx-.45,cx+.45,O.Ll+.28,O.Ll+1.45,L.y-.34,L.y-.3,M.rack,g); }
+  else { // Option 2: Freya standing vertically (DT VMM-XXL), 45° mirror at beam height
+    const pTop=L.y-.3, pBot=pTop-1.07;                 // Freya on end, lens just under the mirror
+    lbox(cx-.355,cx+.355,L.v-.27,L.v+.27,pBot,pTop,M.proj,g);
+    const mir=new THREE.Mesh(new THREE.BoxGeometry(.72,.02,.9),M.mirror); mir.position.copy(P(cx,L.y,L.v)); mir.rotation.z=-Math.PI/4; g.add(mir);
+    lines([P(cx,pTop,L.v),P(cx,L.y,L.v)],0xF3C77B,g); }
+  const lens=P(cx,L.y,L.v), cs=[[-1,0],[1,0],[1,1],[-1,1]].map(([a,b])=>P(cx+a*SW/2,O.screenBottom+b*SH,O.screenV)), pos=[];
+  for(let i=0;i<4;i++){ const a=cs[i],b=cs[(i+1)%4]; pos.push(lens.x,lens.y,lens.z,a.x,a.y,a.z,b.x,b.y,b.z); }
+  const bg=new THREE.BufferGeometry(); bg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.add(new THREE.Mesh(bg,new THREE.MeshBasicMaterial({color:0xfff6dc,transparent:true,opacity:.14,side:THREE.DoubleSide,depthWrite:false}))); lines(cs.flatMap(c=>[lens,c]),0xF3C77B,g);
+  const gv=Gm.r2.v-.35,bb=O.screenBottom+(L.y-O.screenBottom)*(gv-O.screenV)/(L.v-O.screenV),head=Gm.r2.y+1.85;
+  const guest=new THREE.Mesh(new THREE.CylinderGeometry(.17,.17,1.75,20),M.body); guest.position.copy(P(cx+.2,Gm.r2.y+.875,gv)); g.add(guest);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(.11,16,12),M.body); hd.position.copy(P(cx+.2,Gm.r2.y+1.85-.1,gv)); g.add(hd);
+  label('Standing guest · beam '+(bb>head?'clears by ':'blocked by ')+Math.abs(Math.round((bb-head)*1000))+' mm',P(cx,bb+.3,gv),bb>head?'':'alert','proj');
+  label(O.proj==='booth'?'Barco Freya · behind rear-wall port':'Barco Freya · vertical mount at back wall',O.proj==='booth'?new THREE.Vector3(WW/2,3.45,-1):P(cx,3.25,O.Ll-.45),'strong','proj');
+  Gm.lf=lf; Gm.beamClr=bb-head; }
+
+/* ---------- card ---------- */
+const row=(k,v)=>`<div class="row"><span>${k}</span><b>${v}</b></div>`;
+const tile=(v,k,c)=>`<div class="tile"><div class="v">${c?`<i class="dot d-${c}"></i>`:''}${v}</div><div class="k">${k}</div></div>`;
+const STEPN=['','Room & Entry','Viewing Angles','Speakers','WaveForming','Projector'];
+function cardHTML(){ const st=state.step,g=Gm,rear=O.Ll-g.r2.v, top=t=>`<div class="eyebrow">${O.name} · ${STEPN[st]}</div><h1>${t}</h1>`;
+  if(st===1) return top('A cinema you step straight into.')+`<p class="cap">${O.cap}</p>
+   <div class="tiles">${g.single?tile(g.r1.n,'Recliners in one curved row'):tile(g.r1.n+g.r2.n,'Recliners in two rows ('+g.r1.n+' + '+g.r2.n+')')}${tile(rear.toFixed(2)+'<small>m</small>',(g.single?'Row':'Row 2')+' to rear wall',rear>=1?'ok':'bad')}</div>
+   <div class="list">${row('Room','20′-3″ × 23′-9″ · 12′ ceiling')}${row('Levels',O.riserTxt)}${row('Steps in the lounge',O.outSteps)}${row('Steps inside',O.inSteps)}</div>`;
+  if(st===2&&g.single) return top('A picture that fills your view.')+`<p class="cap">The larger, taller screen fills almost the full 61° comfort limit from the centre seat, for an immersive IMAX-style view. The curved row keeps every recliner at nearly the same distance, so the whole row shares the experience.</p>
+   <div class="tiles">${tile(g.ang2.toFixed(0)+'°','Centre seat field of view','ok')}${tile(g.ang1.toFixed(0)+'°','End seat field of view',g.ang1>75?'warn':'ok')}${tile('Clear','No row in front · nothing blocks the view','ok')}${tile(SW.toFixed(1)+'<small>m</small>','Screen width · 1.90 : 1')}</div>`;
+  if(st===2){ const c=Math.round(g.clr*1000);
+    return top('Every seat, the right view.')+`<p class="cap">Measured from each seated head at eye level. Trinnov and SMPTE: no seat wider than 61°, the main seat near the 44° reference.</p>
+   <div class="tiles">${tile(g.ang1.toFixed(0)+'°','Row 1 field of view',g.ang1>62?'bad':'ok')}${tile(g.ang2.toFixed(0)+'°','Row 2 · main seat',Math.abs(g.ang2-44)<=5?'ok':'warn')}${tile(c+'<small>mm</small>','Sightline over row-1 heads',c>=100?'ok':(c>=60?'warn':'bad'))}${tile(O.screenBottom.toFixed(1)+'<small>m</small>','Screen bottom height')}</div>`; }
+  if(st===3){ const s=speakers(O),f=n=>s.find(x=>x.n===n);
+    return top('Sound placed with intent.')+`<p class="cap">Dolby Atmos 9.1.6 with ten WaveForming subwoofers, laid out with Trinnov's multi-row rules. The screen turns transparent so you can see what sits behind it.</p>
+   <div class="tiles">${tile(Math.round(f('R').az)+'°','Screen left and right')}${tile(Math.round(f('Rw').az)+'°','Wides · median-angle rule')}${tile(Math.round(f('Rs').az)+'°','Side surrounds · equal timing to both rows')}${tile(Math.round(f('Rrs').az)+'°','Rear surrounds')}</div>
+   <div class="list">${row('Overheads',Math.round(f('Rtf').el)+'° · '+Math.round(f('Rtm').el)+'° · '+Math.round(f('Rtr').el)+'° up')}${row('Side surrounds','Centred between rows · '+s.sideDist[0].toFixed(2)+' m to row 1, '+s.sideDist[1].toFixed(2)+' m to row 2')}${row('Surround height','30 cm above ears')}${row('Subwoofers','6 front · 4 rear')}</div>`; }
+  if(st===4) return top('Bass, equal in every seat.')+`<p class="cap">${state.bass==='wf'?'Six front subwoofers launch a single flat wavefront. Four rear subwoofers absorb it, so it never returns to build room modes.':'Two corner subwoofers radiate in all directions. Every wall reflects the sound back, and the reflections overlap into room modes.'}</p>
+   <div class="pill" id="bassSeg"><button data-bass="conv">2 corner subs</button><button data-bass="wf">WaveForming</button></div>
+   <div class="tiles">${state.bass==='wf'?tile('±0.5<small>dB</small>','Seat to seat, up to 100 Hz (Trinnov)','ok'):tile(g.worst.toFixed(0)+'<small>dB</small>','Worst seat-to-seat, 30–100 Hz (room model)','bad')}${tile(state.bass==='wf'?'10':'2','Subwoofers')}</div>
+   <details><summary>Subwoofer positions</summary><table><tr><th>Sub</th><th>Across</th><th>Height</th></tr>${wfSubs(O).map(s=>`<tr><td>${s.n} ${s.front?'front':'rear'}</td><td>${s.u.toFixed(2)} m</td><td>${s.y.toFixed(2)} m</td></tr>`).join('')}</table></details>`;
+  const lf=g.lf;
+  return top('True cinema light.')+`<p class="cap">Barco Freya DCI laser projector with its Alchemy cinema server. ${O.proj==='booth'?'Mounted conventionally behind the rear wall, firing through a glass port above the rack.':'Stood vertically against the back wall on a DT VMM-XXL, firing off a 45° mirror.'}</p>
+   <div class="tiles">${tile(lf.tr.toFixed(2)+'<small>:1</small>','Throw ratio')}${tile(lf.th.toFixed(1)+'<small>m</small>','Throw distance')}${tile(lf.tr<=2.1?'RG2':'RG3','Light safety risk group',lf.tr<=2.1?'ok':'warn')}${tile(Math.abs(Math.round(g.beamClr*1000))+'<small>mm</small>',g.beamClr>0?'Beam clears a standing guest':'Beam hits a standing guest',g.beamClr>0?'ok':'bad')}</div>
+   <div class="list">${row('Lens',lf.lens?lf.lens[0]+'–'+lf.lens[1]+' : 1':'Check')}${row('Heat and fan noise',O.proj==='booth'?'Outside the room':'Inside the room')}</div>
+   <p class="fine">${O.proj==='vmm'?'Mirror height assumed; confirm with the VMM-XXL drawing. ':''}Freya is RG2 up to a 2.10 : 1 throw ratio outside the USA per Barco; confirm in Barco's safety manual for the chosen lens.</p>`; }
+function applyStep(moveCam=true){ const st=state.step; document.getElementById('cardBody').innerHTML=cardHTML();
+  document.querySelectorAll('#dock button,#dots button').forEach(b=>b.classList.toggle('on',+b.dataset.step===st));
+  G.dim.visible=st===1; G.ang.visible=st===2; G.spk.visible=st===3; G.bass.visible=st===4; G.proj.visible=st===5;
+  const see=st===3||st===4; G.screen.material.opacity=see?.1:1; G.baffle.material=see?M.baffleG:M.baffle;
+  const bs=document.getElementById('bassSeg'); if(bs){ bs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.bass===state.bass)); bs.onclick=e=>{ const b=e.target.closest('button'); if(!b) return; state.bass=b.dataset.bass; build(); place(); }; }
+  if(moveCam) setView(st===2?'top':'iso',st); else place(); }
+
+/* ---------- camera ---------- */
+let orb={theta:0,phi:.6,r:10,target:new THREE.Vector3(WW/2,1.2,WL/2)};
+function setView(v,st){ state.view=v; document.querySelectorAll('#views [data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  if(v==='seat'){ camera=persp; place(); return; } camera=ortho; const s=O.orient==='S';
+  if(v==='iso'){ const b={1:[.62,10.5,-.9],3:[.72,9.8,-.75],4:[.5,10.2,-.55],5:[.4,11.5,-1.25]}[st||state.step]||[.62,10.5,-.9]; orb.theta=s?Math.atan2(1,b[2]):Math.atan2(1,-.95); orb.phi=b[0]; orb.r=b[1]; orb.target.set(WW/2,1.1,WL/2-(s?.6:0)); }
+  if(v==='top'){ orb.theta=0; orb.phi=1.5699; orb.r=9.4; orb.target.set(WW/2,0,WL/2-.9); }
+  if(v==='section'){ orb.theta=s?Math.PI/2:Math.PI; orb.phi=0; orb.r=5.8; orb.target.set(WW/2,1.7,WL/2-.2); }
+  place(); }
+function place(){ if(state.view==='seat'){ const m=Gm.mlp; persp.position.copy(P(m.u,m.y+.05,m.v)); persp.lookAt(P(Gm.cx,O.screenBottom+SH*.45,O.screenV)); persp.updateProjectionMatrix(); cut(); return; }
+  const {theta,phi,r,target}=orb; ortho.position.set(target.x+r*Math.cos(phi)*Math.sin(theta),target.y+r*Math.sin(phi),target.z+r*Math.cos(phi)*Math.cos(theta));
+  ortho.up.set(0,1,0); if(phi>1.55) ortho.up.set(-Math.sin(theta),0,-Math.cos(theta)); ortho.lookAt(target);
+  const w=stage.clientWidth,h=Math.max(1,stage.clientHeight),a=w/h,phone=w<760; let hh=r*.5; if(a<1) hh=r*.5/a*.9;
+  const cardEl=document.getElementById('card'), min=cardEl.classList.contains('min'); let fx=0,fy=0;
+  if(phone){ const covered=(min?120:Math.min(h*.42,cardEl.offsetHeight||h*.4))+64, top=90; fy=-((covered-top)/2)/h*2*hh; }
+  else if(w>1000){ const cw=(cardEl.offsetWidth||360)+28; fx=-(cw/2)/w*2*hh*a; }
+  ortho.left=fx-hh*a; ortho.right=fx+hh*a; ortho.top=fy+hh; ortho.bottom=fy-hh; ortho.updateProjectionMatrix(); cut(); }
+function cut(){ const d=camera.position.clone().sub(new THREE.Vector3(WW/2,1.5,WL/2)); walls.forEach(w=>{ const hide=w.userData.n.dot(d)>.5; w.traverse(o=>{ if(o.isMesh) o.material=hide?M.ghost:M.wall; if(o.isLineSegments) o.visible=!hide; }); }); }
+let drag=null; const cv=renderer.domElement;
+const ptrs=new Set();
+cv.addEventListener('pointerdown',e=>{ ptrs.add(e.pointerId); if(ptrs.size>1){ drag=null; return; } if(state.view==='seat'){ state.view='iso'; camera=ortho; document.querySelectorAll('#views [data-view]').forEach(b=>b.classList.remove('on')); } drag={x:e.clientX,y:e.clientY,t:orb.theta,p:orb.phi}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove',e=>{ if(!drag||ptrs.size>1) return; orb.theta=drag.t-(e.clientX-drag.x)*.008; orb.phi=Math.max(0,Math.min(1.5699,drag.p+(e.clientY-drag.y)*.006)); place(); });
+['pointerup','pointercancel','pointerleave'].forEach(t=>cv.addEventListener(t,e=>{ ptrs.delete(e.pointerId); drag=null; }));
+cv.addEventListener('wheel',e=>{ e.preventDefault(); orb.r=Math.max(3,Math.min(22,orb.r*(1+Math.sign(e.deltaY)*.08))); place(); },{passive:false});
+let pinch=null;
+cv.addEventListener('touchstart',e=>{ if(e.touches.length===2){ pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); drag=null; } },{passive:true});
+cv.addEventListener('touchmove',e=>{ if(e.touches.length===2&&pinch){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); orb.r=Math.max(3,Math.min(22,orb.r*pinch/d)); pinch=d; place(); } },{passive:true});
+
+const GS={base:[1,2,3,4,5],e:[1],ang:[2],spk:[3],bass:[4],proj:[5]},v3=new THREE.Vector3();
+function labelsTick(){ const w=stage.clientWidth,h=stage.clientHeight; labels.forEach(l=>{ if(!(GS[l.grp]||[]).includes(state.step)){ l.el.style.display='none'; return; }
+  v3.copy(l.pos).project(camera); if(v3.z>1||v3.z<-1||Math.abs(v3.x)>1.05||Math.abs(v3.y)>1.05){ l.el.style.display='none'; return; }
+  l.el.style.display='block'; l.el.style.left=((v3.x+1)/2*w)+'px'; l.el.style.top=((1-v3.y)/2*h)+'px'; }); }
+function resize(){ const w=stage.clientWidth,h=stage.clientHeight; renderer.setSize(w,h,false); persp.aspect=w/Math.max(1,h); persp.fov=w<h?78:58; persp.updateProjectionMatrix(); place(); }
+window.addEventListener('resize',resize);
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches; let last=performance.now();
+function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(state.step===4) tickWaves(reduce?dt*.4:dt); renderer.render(scene,camera); labelsTick(); requestAnimationFrame(loop); }
+
+document.getElementById('optSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; state.opt=+b.dataset.opt; build(); setView(state.view==='seat'?'iso':state.view); });
+['dock','dots'].forEach(id=>document.getElementById(id).addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; state.step=+b.dataset.step; applyStep(true); }));
+document.getElementById('grab').onclick=()=>{ document.getElementById('card').classList.toggle('min'); place(); };
+document.getElementById('prev').onclick=()=>{ state.step=Math.max(1,state.step-1); applyStep(true); };
+document.getElementById('next').onclick=()=>{ state.step=Math.min(5,state.step+1); applyStep(true); };
+document.getElementById('views').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&b.dataset.view) setView(b.dataset.view); });
+document.getElementById('savePng').addEventListener('click',()=>{ const a=document.createElement('a'); a.download='Kalady_'+O.name.replace(' ','')+'_Step'+state.step+'.png'; a.href=renderer.domElement.toDataURL('image/png'); a.click(); });
+window.addEventListener('keydown',e=>{ if(e.key==='ArrowRight'){ state.step=Math.min(5,state.step+1); applyStep(true);} if(e.key==='ArrowLeft'){ state.step=Math.max(1,state.step-1); applyStep(true);} });
+if(window.innerWidth<760) document.getElementById('card').classList.add('min');   // phones open with the 3D room in view
+document.getElementById('cardBody').addEventListener('click',e=>{ if(window.innerWidth<760&&e.target.closest('h1,.eyebrow')){ document.getElementById('card').classList.toggle('min'); place(); } });
+build(); resize(); setView('iso',1); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
